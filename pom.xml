@@ -20,7 +20,6 @@
                 </snapshotRepository>
         </distributionManagement>
 
-
         <modelVersion>4.0.0</modelVersion>
         <groupId>to.networld.security</groupId>
         <artifactId>identity_provider</artifactId>
@@ -69,9 +68,20 @@
 
         <dependencies>
                 <dependency>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml</artifactId>
-                        <version>2.2.3</version>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>4.8.2</version>
+                        <scope>test</scope>
+                </dependency>
+                <dependency>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                        <version>1.2.16</version>
+                </dependency>
+                <dependency>
+                        <groupId>commons-codec</groupId>
+                        <artifactId>commons-codec</artifactId>
+                        <version>1.4</version>
                 </dependency>
         </dependencies>
 

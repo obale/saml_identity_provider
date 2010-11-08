@@ -21,16 +21,40 @@
 
 package to.networld.security;
 
+import java.util.UUID;
+
+import org.apache.log4j.Logger;
+
+import to.networld.security.common.Base64Helper;
+import to.networld.security.idp.IdPMessageFactory;
+import to.networld.security.sp.SPMessageFactory;
+
 /**
  * @author Alex Oberhauser
  */
-public class IdentityProvider {
-
+public class IdentityProvider  {
+	
+	private static String issuerIRI = "http://sp.networld.to/SAML2";
+	private static String authID = UUID.randomUUID().toString();
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		Logger log = Logger.getLogger(IdentityProvider.class);
+		
+		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
+		String auth = spMsgFactory.createAuthnRequest(issuerIRI, authID);
+		log.trace("\n--- BEGIN AuthnRequest ---\n" + auth + "\n--- END AuthnRequest ---\n");
+		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI, authID) + "\n--- END X-Form Part---\n");
+		
+		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
+		String response = idpMsgFactory.createResponse(authID, 
+				"http://sp.networld.to/SAML2/SSO/POST",
+				"http://sp.networld.to/SAML2",
+				"https://idp.networld.to/SAML2");
+		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
+		log.trace("\n--- BEGIN Response (Base64) ---\n" + Base64Helper.convertToBase64(response.getBytes()) + "\n--- END Response (Base64) ---\n");
 
 	}
 
