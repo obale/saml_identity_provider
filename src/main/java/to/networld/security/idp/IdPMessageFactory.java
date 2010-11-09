@@ -21,9 +21,10 @@
 
 package to.networld.security.idp;
 
-import java.util.UUID;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-import to.networld.security.common.DateHelper;
+import to.networld.security.common.data.AuthnResponse;
 
 /**
  * @author Alex Oberhauser
@@ -47,65 +48,12 @@ public class IdPMessageFactory {
 	 * @param _destinationIRI
 	 * @param _issuerIRI
 	 * @return The SAML response message for the singel sign-on process.
+	 * @throws IOException 
 	 */
-	public String createResponse(String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI) {
-		StringBuffer response = new StringBuffer();
-		
-		String currentDate = DateHelper.getCurrentDate();
-		
-		response.append("<samlp:Response\n");
-		response.append("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n");
-		response.append("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n");
-		response.append("\tID=\"" + UUID.randomUUID().toString() + "\"\n");
-		response.append("\tInResponseTo=\"" + _requestID + "\"\n");
-		response.append("\tVersion=\"2.0\"\n");
-		response.append("\tIssueInstant=\"" + DateHelper.getCurrentDate() + "\"\n");
-		response.append("\tDestination=\"" + _destinationIRI + "\">\n");
-		response.append("\t<saml:Issuer>" + _issuerIRI + "</saml:Issuer>\n");
-		response.append("\t<samlp:Status>\n");
-		response.append("\t\t<samlp:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\"/>\n");
-		response.append("\t</samlp:Status>\n");
-		response.append("\t<saml:Assertion\n");
-		response.append("\t\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n");
-		String assertionID = UUID.randomUUID().toString();
-		response.append("\t\tID=\"" + assertionID  + "\"\n");
-		response.append("\t\tVersion=\"2.0\"\n");
-		response.append("\t\tIssueInstant=\"" + currentDate + "\"\n");
-		response.append("\t\t<saml:Issuer>" + _issuerIRI + "</saml:Issuer>\n");
-		response.append("\t\t<ds:Signature xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n");
-		response.append("\t\t\t<!-- Here comes the signature -->\n");
-		response.append("\t\t</ds:Signature>\n");
-		response.append("\t\t<saml:Subject>\n");
-		response.append("\t\t\t<saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">\n");
-		response.append("\t\t\t\t" + UUID.randomUUID() + "\n");
-		response.append("\t\t\t</saml:NameID>\n");
-		response.append("\t\t\t<saml:SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\n");
-		response.append("\t\t\t\t<saml:SubjectConfirmationData\n");
-		response.append("\t\t\t\t\tInResponseTo=\"" + _requestID + "\"\n");
-		response.append("\t\t\t\t\tRecipient=\"" + _destinationIRI + "\"\n");
-		String futureDate = DateHelper.getFutureDate(10);
-		response.append("\t\t\t\t\tNotOnOrAfter=\"" + futureDate + "\"/>\n");
-		response.append("\t\t\t\t</saml:SubjectConfirmation>\n");
-		response.append("\t\t</saml:Subject>\n");
-		response.append("\t\t<saml:Conditions\n");
-		response.append("\t\t\tNotBefore=\"" + currentDate + "\"\n");
-		response.append("\t\t\tNotOnOrAfter=\"" + futureDate + "\">\n");
-		response.append("\t\t\t<saml:AudienceRestriction>\n");
-		response.append("\t\t\t\t<saml:Audience>" + _audienceIRI + "</saml:Audience>\n");
-		response.append("\t\t\t</saml:AudienceRestriction>\n");
-		response.append("\t\t</saml:Conditions>\n");
-		response.append("\t\t<saml:AuthnStatement\n");
-		response.append("\t\t\tAuthnInstant=\"" + currentDate + "\"\n");
-		response.append("\t\t\tSessionIndex=\"" + assertionID + "\">\n");
-		response.append("\t\t\t<saml:AuthnContext>\n");
-		response.append("\t\t\t\t<saml:AuthnContextClassRef>\n");
-		response.append("\t\t\t\t\turn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\n");
-		response.append("\t\t\t\t</saml:AuthnContextClassRef>\n");
-		response.append("\t\t\t</saml:AuthnContext>\n");
-		response.append("\t\t</saml:AuthnStatement\n");
-		response.append("\t</saml:Assertion\n");
-		response.append("</samlp:Response>");
-		
-		return response.toString();
+	public String createResponse(String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI) throws IOException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		AuthnResponse authnResponse = new AuthnResponse(_issuerIRI, _requestID, _destinationIRI, _audienceIRI);
+		authnResponse.toXML(os);
+		return os.toString();
 	}
 }

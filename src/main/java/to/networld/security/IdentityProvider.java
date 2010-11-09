@@ -21,6 +21,7 @@
 
 package to.networld.security;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -39,8 +40,9 @@ public class IdentityProvider  {
 	
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		Logger log = Logger.getLogger(IdentityProvider.class);
 		
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();

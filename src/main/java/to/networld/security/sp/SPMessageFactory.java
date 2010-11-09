@@ -21,8 +21,11 @@
 
 package to.networld.security.sp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import to.networld.security.common.Base64Helper;
-import to.networld.security.common.DateHelper;
+import to.networld.security.common.data.AuthnRequest;
 
 /**
  * @author Alex Oberhauser
@@ -39,7 +42,7 @@ public class SPMessageFactory {
 		return instance;
 	}
 	
-	public String createXFormSAMLPart(String _issuerIRI, String _id) {
+	public String createXFormSAMLPart(String _issuerIRI, String _id) throws IOException {
 		StringBuffer formPart = new StringBuffer();
 		formPart.append("<input type=\"hidden\" name=\"SAMLRequest\" value=\"");
 		formPart.append(Base64Helper.convertToBase64(this.createAuthnRequest(_issuerIRI, _id).getBytes()));
@@ -54,22 +57,12 @@ public class SPMessageFactory {
 	 * @param _issuerIRI
 	 * @param _id A unique identifier (e.g. UUID.randomUUID().toString())
 	 * @return The SAML authentication request message.
+	 * @throws IOException 
 	 */
-	public String createAuthnRequest(String _issuerIRI, String _id) {
-		StringBuffer authnRequest = new StringBuffer();
-		
-		authnRequest.append("<samlp:AuthnRequest\n");
-		authnRequest.append("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n");
-		authnRequest.append("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n");
-		authnRequest.append("\tID=\"" + _id + "\"\n");
-		authnRequest.append("\tVersion=\"2.0\"\n");
-		authnRequest.append("\tIssueInstant=\"" + DateHelper.getCurrentDate() + "\"\n");
-		authnRequest.append("\tAssertionConsumerServiceIndex=\"0\"\n");
-		authnRequest.append("\tAttributeConsumingServiceIndex=\"0\">\n");
-		authnRequest.append("\t<saml:Issuer>" + _issuerIRI + "</saml:Issuer>\n");
-		authnRequest.append("\t<samlp:NameIDPolicy AllowCreate=\"true\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"/>\n");
-		authnRequest.append("</samlp:AuthnRequest>");
-		
-		return authnRequest.toString();
+	public String createAuthnRequest(String _issuerIRI, String _id) throws IOException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		AuthnRequest authnRequest = new AuthnRequest(_issuerIRI, _id);
+		authnRequest.toXML(os);
+		return os.toString();
 	}
 }
