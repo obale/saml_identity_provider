@@ -22,11 +22,11 @@
 package to.networld.security;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import to.networld.security.common.Base64Helper;
+import to.networld.security.common.data.AuthnRequest;
+import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.idp.IdPMessageFactory;
 import to.networld.security.sp.SPMessageFactory;
 
@@ -36,7 +36,7 @@ import to.networld.security.sp.SPMessageFactory;
 public class IdentityProvider  {
 	
 	private static String issuerIRI = "http://sp.networld.to/SAML2";
-	private static String authID = UUID.randomUUID().toString();
+	private static String username = "John Doe"; // or UUID.randomUUID().toString();
 	
 	/**
 	 * @param args
@@ -46,18 +46,23 @@ public class IdentityProvider  {
 		Logger log = Logger.getLogger(IdentityProvider.class);
 		
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
-		String auth = spMsgFactory.createAuthnRequest(issuerIRI, authID);
+		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI);
 		log.trace("\n--- BEGIN AuthnRequest ---\n" + auth + "\n--- END AuthnRequest ---\n");
-		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI, authID) + "\n--- END X-Form Part---\n");
+		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI) + "\n--- END X-Form Part---\n");
 		
 		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
-		String response = idpMsgFactory.createResponse(authID, 
+		AuthnResponse response = idpMsgFactory.createResponse(username,
+				auth.getRequestID(), 
 				"http://sp.networld.to/SAML2/SSO/POST",
 				"http://sp.networld.to/SAML2",
 				"https://idp.networld.to/SAML2");
+		
 		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
-		log.trace("\n--- BEGIN Response (Base64) ---\n" + Base64Helper.convertToBase64(response.getBytes()) + "\n--- END Response (Base64) ---\n");
-
+		log.trace("\n--- BEGIN X-Form Part ---\n" + idpMsgFactory.createXFormSAMLPart(username,
+				auth.getRequestID(),
+				"http://sp.networld.to/SAML2/SSO/POST", 
+				"http://sp.networld.to/SAML2", "https://idp.networld.to/SAML2") 
+				+ "\n--- END X-Form Part---\n");
 	}
 
 }

@@ -21,6 +21,7 @@
 
 package to.networld.security.common.data;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,6 +71,10 @@ public class AuthnRequest {
 		}
 	}
 	
+	public String getIssuer() { return this.issuer; }
+	public String getIssuerInstant() { return this.issueInstant; }
+	public String getRequestID() { return this.requestID; }
+	
 	public void toXML(OutputStream _os) throws IOException {
 		_os.write("<samlp:AuthnRequest\n".getBytes());
 		_os.write("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n".getBytes());
@@ -83,6 +88,17 @@ public class AuthnRequest {
 		_os.write("\t<samlp:NameIDPolicy AllowCreate=\"true\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"/>\n".getBytes());
 		_os.write("</samlp:AuthnRequest>".getBytes());
 		_os.flush();
+		_os.close();
 	}
 	
+	@Override
+	public String toString() {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		try {
+			this.toXML(os);
+			return os.toString();
+		} catch (IOException e) {
+			return null;
+		}
+	}
 }

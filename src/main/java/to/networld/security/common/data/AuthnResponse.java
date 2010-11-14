@@ -21,17 +21,31 @@
 
 package to.networld.security.common.data;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.util.UUID;
+
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import to.networld.security.common.DateHelper;
+import to.networld.security.common.Keytool;
+import to.networld.security.common.XMLSecurity;
 
 /**
  * @author Alex Oberhauser
@@ -40,7 +54,7 @@ public class AuthnResponse {
 	private String issuer = null;
 	private String responseID = null;
 	private String assertionID = null;
-	private String arifactID = null;
+	private String username = null;
 	private String requestID = null;
 	private String destinationIRI = null;
 	private String audienceIRI = null;
@@ -49,14 +63,14 @@ public class AuthnResponse {
 	
 	public AuthnResponse() {}
 	
-	public AuthnResponse(String _issuer, String _requestID, String _destinationIRI, String _audienceIRI) {
+	public AuthnResponse(String _username, String _issuer, String _requestID, String _destinationIRI, String _audienceIRI) {
 		this.issuer = _issuer;
 		this.requestID = _requestID;
 		this.destinationIRI = _destinationIRI;
 		this.audienceIRI = _audienceIRI;
 		this.responseID = UUID.randomUUID().toString();
 		this.assertionID = UUID.randomUUID().toString();
-		this.arifactID = UUID.randomUUID().toString();
+		this.username = _username;
 		this.currentDate = DateHelper.getCurrentDate();
 		this.futureDate = DateHelper.getFutureDate(10);
 	}
@@ -83,7 +97,7 @@ public class AuthnResponse {
 		
 		Node nameIDNode = doc.selectSingleNode("/samlp:Response/saml:Assertion/saml:Subject/saml:NameID");
 		if ( nameIDNode != null )
-			this.arifactID = nameIDNode.getText().trim();
+			this.username = nameIDNode.getText().trim();
 		
 		Node subjectConfirmationData = doc.selectSingleNode("/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData");
 		if ( subjectConfirmationData != null )
@@ -94,57 +108,71 @@ public class AuthnResponse {
 			this.audienceIRI = audienceRestriction.getText().trim();
 	}
 	
-	public void toXML(OutputStream _os) throws IOException {
-
-		_os.write("<samlp:Response\n".getBytes());
-		_os.write("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n".getBytes());
-		_os.write("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
-		_os.write(("\tID=\"" + this.responseID + "\"\n").getBytes());
-		_os.write(("\tInResponseTo=\"" + this.requestID + "\"\n").getBytes());
-		_os.write("\tVersion=\"2.0\"\n".getBytes());
-		_os.write(("\tIssueInstant=\"" + this.currentDate + "\"\n").getBytes());
-		_os.write(("\tDestination=\"" + this.destinationIRI + "\">\n").getBytes());
-		_os.write(("\t<saml:Issuer>" + this.issuer + "</saml:Issuer>\n").getBytes());
-		_os.write("\t<samlp:Status>\n".getBytes());
-		_os.write("\t\t<samlp:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\"/>\n".getBytes());
-		_os.write("\t</samlp:Status>\n".getBytes());
-		_os.write("\t<saml:Assertion\n".getBytes());
-		_os.write("\t\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
-		_os.write(("\t\tID=\"" + this.assertionID  + "\"\n").getBytes());
-		_os.write("\t\tVersion=\"2.0\"\n".getBytes());
-		_os.write(("\t\tIssueInstant=\"" + currentDate + "\">\n").getBytes());
-		_os.write(("\t\t<saml:Issuer>" + issuer + "</saml:Issuer>\n").getBytes());
-		_os.write("\t\t<ds:Signature xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n".getBytes());
-		_os.write("\t\t\t<!-- Here comes the signature -->\n".getBytes());
-		_os.write("\t\t</ds:Signature>\n".getBytes());
-		_os.write("\t\t<saml:Subject>\n".getBytes());
-		_os.write("\t\t\t<saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">\n".getBytes());
-		_os.write(("\t\t\t\t" + this.arifactID + "\n").getBytes());
-		_os.write("\t\t\t</saml:NameID>\n".getBytes());
-		_os.write("\t\t\t<saml:SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\n".getBytes());
-		_os.write("\t\t\t\t<saml:SubjectConfirmationData\n".getBytes());
-		_os.write(("\t\t\t\t\tInResponseTo=\"" + requestID + "\"\n").getBytes());
-		_os.write(("\t\t\t\t\tRecipient=\"" + destinationIRI + "\"\n").getBytes());
-		_os.write(("\t\t\t\t\tNotOnOrAfter=\"" + futureDate + "\"/>\n").getBytes());
-		_os.write("\t\t\t\t</saml:SubjectConfirmation>\n".getBytes());
-		_os.write("\t\t</saml:Subject>\n".getBytes());
-		_os.write("\t\t<saml:Conditions\n".getBytes());
-		_os.write(("\t\t\tNotBefore=\"" + this.currentDate + "\"\n").getBytes());
-		_os.write(("\t\t\tNotOnOrAfter=\"" + futureDate + "\">\n").getBytes());
-		_os.write("\t\t\t<saml:AudienceRestriction>\n".getBytes());
-		_os.write(("\t\t\t\t<saml:Audience>" + audienceIRI + "</saml:Audience>\n").getBytes());
-		_os.write("\t\t\t</saml:AudienceRestriction>\n".getBytes());
-		_os.write("\t\t</saml:Conditions>\n".getBytes());
-		_os.write("\t\t<saml:AuthnStatement\n".getBytes());
-		_os.write(("\t\t\tAuthnInstant=\"" + this.currentDate + "\"\n").getBytes());
-		_os.write(("\t\t\tSessionIndex=\"" + assertionID + "\">\n").getBytes());
-		_os.write("\t\t\t<saml:AuthnContext>\n".getBytes());
-		_os.write("\t\t\t\t<saml:AuthnContextClassRef>\n".getBytes());
-		_os.write("\t\t\t\t\turn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\n".getBytes());
-		_os.write("\t\t\t\t</saml:AuthnContextClassRef>\n".getBytes());
-		_os.write("\t\t\t</saml:AuthnContext>\n".getBytes());
-		_os.write("\t\t</saml:AuthnStatement>\n".getBytes());
-		_os.write("\t</saml:Assertion>\n".getBytes());
-		_os.write("</samlp:Response>".getBytes());
+	public String getIssuer() { return this.issuer; }
+	public String getResponseID() { return this.responseID; }
+	public String getAssertionID() { return this.assertionID; }
+	
+	public void toXML(OutputStream _os) throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException, SAXException, ParserConfigurationException, MarshalException, XMLSignatureException, TransformerException {
+		ByteArrayOutputStream tmpOS = new ByteArrayOutputStream();
+		tmpOS.write("<samlp:Response\n".getBytes());
+		tmpOS.write("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n".getBytes());
+		tmpOS.write("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
+		tmpOS.write(("\tID=\"" + this.responseID + "\"\n").getBytes());
+		tmpOS.write(("\tInResponseTo=\"" + this.requestID + "\"\n").getBytes());
+		tmpOS.write("\tVersion=\"2.0\"\n".getBytes());
+		tmpOS.write(("\tIssueInstant=\"" + this.currentDate + "\"\n").getBytes());
+		tmpOS.write(("\tDestination=\"" + this.destinationIRI + "\">\n").getBytes());
+		tmpOS.write(("\t<saml:Issuer>" + this.issuer + "</saml:Issuer>\n").getBytes());
+		tmpOS.write("\t<samlp:Status>\n".getBytes());
+		tmpOS.write("\t\t<samlp:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\"/>\n".getBytes());
+		tmpOS.write("\t</samlp:Status>\n".getBytes());
+		tmpOS.write("\t<saml:Assertion\n".getBytes());
+		tmpOS.write("\t\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
+		tmpOS.write(("\t\tID=\"" + this.assertionID  + "\"\n").getBytes());
+		tmpOS.write("\t\tVersion=\"2.0\"\n".getBytes());
+		tmpOS.write(("\t\tIssueInstant=\"" + currentDate + "\">\n").getBytes());
+		tmpOS.write(("\t\t<saml:Issuer>" + issuer + "</saml:Issuer>\n").getBytes());
+		tmpOS.write("\t\t<saml:Subject>\n".getBytes());
+		tmpOS.write("\t\t\t<saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">\n".getBytes());
+		tmpOS.write(("\t\t\t\t" + this.username + "\n").getBytes());
+		tmpOS.write("\t\t\t</saml:NameID>\n".getBytes());
+		tmpOS.write("\t\t\t<saml:SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\n".getBytes());
+		tmpOS.write("\t\t\t\t<saml:SubjectConfirmationData\n".getBytes());
+		tmpOS.write(("\t\t\t\t\tInResponseTo=\"" + this.requestID + "\"\n").getBytes());
+		tmpOS.write(("\t\t\t\t\tRecipient=\"" + this.destinationIRI + "\"\n").getBytes());
+		tmpOS.write(("\t\t\t\t\tNotOnOrAfter=\"" + this.futureDate + "\"/>\n").getBytes());
+		tmpOS.write("\t\t\t\t</saml:SubjectConfirmation>\n".getBytes());
+		tmpOS.write("\t\t</saml:Subject>\n".getBytes());
+		tmpOS.write("\t\t<saml:Conditions\n".getBytes());
+		tmpOS.write(("\t\t\tNotBefore=\"" + this.currentDate + "\"\n").getBytes());
+		tmpOS.write(("\t\t\tNotOnOrAfter=\"" + this.futureDate + "\">\n").getBytes());
+		tmpOS.write("\t\t\t<saml:AudienceRestriction>\n".getBytes());
+		tmpOS.write(("\t\t\t\t<saml:Audience>" + this.audienceIRI + "</saml:Audience>\n").getBytes());
+		tmpOS.write("\t\t\t</saml:AudienceRestriction>\n".getBytes());
+		tmpOS.write("\t\t</saml:Conditions>\n".getBytes());
+		tmpOS.write("\t\t<saml:AuthnStatement\n".getBytes());
+		tmpOS.write(("\t\t\tAuthnInstant=\"" + this.currentDate + "\"\n").getBytes());
+		tmpOS.write(("\t\t\tSessionIndex=\"" + this.assertionID + "\">\n").getBytes());
+		tmpOS.write("\t\t\t<saml:AuthnContext>\n".getBytes());
+		tmpOS.write("\t\t\t\t<saml:AuthnContextClassRef>\n".getBytes());
+		tmpOS.write("\t\t\t\t\turn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\n".getBytes());
+		tmpOS.write("\t\t\t\t</saml:AuthnContextClassRef>\n".getBytes());
+		tmpOS.write("\t\t\t</saml:AuthnContext>\n".getBytes());
+		tmpOS.write("\t\t</saml:AuthnStatement>\n".getBytes());
+		tmpOS.write("\t</saml:Assertion>\n".getBytes());
+		tmpOS.write("</samlp:Response>".getBytes());
+		XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
+		xmlSec.signDocument(_os, tmpOS.toString(), this.assertionID);
+	}
+	
+	@Override
+	public String toString() {
+		try {
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			this.toXML(os);
+			return os.toString();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

@@ -21,7 +21,6 @@
 
 package to.networld.security.sp;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import to.networld.security.common.Base64Helper;
@@ -42,12 +41,11 @@ public class SPMessageFactory {
 		return instance;
 	}
 	
-	public String createXFormSAMLPart(String _issuerIRI, String _id) throws IOException {
+	public String createXFormSAMLPart(String _issuerIRI) throws IOException {
 		StringBuffer formPart = new StringBuffer();
 		formPart.append("<input type=\"hidden\" name=\"SAMLRequest\" value=\"");
-		formPart.append(Base64Helper.convertToBase64(this.createAuthnRequest(_issuerIRI, _id).getBytes()));
+		formPart.append(Base64Helper.convertToBase64(this.createAuthnRequest(_issuerIRI).toString().getBytes()));
 		formPart.append("\" />\n");
-		formPart.append("<input type=\"hidden\" name=\"RelayState\" value=\"token\" />\n");
 		return formPart.toString();
 	}
 	
@@ -59,10 +57,7 @@ public class SPMessageFactory {
 	 * @return The SAML authentication request message.
 	 * @throws IOException 
 	 */
-	public String createAuthnRequest(String _issuerIRI, String _id) throws IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		AuthnRequest authnRequest = new AuthnRequest(_issuerIRI, _id);
-		authnRequest.toXML(os);
-		return os.toString();
+	public AuthnRequest createAuthnRequest(String _issuerIRI) throws IOException {
+		return new AuthnRequest(_issuerIRI);
 	}
 }
