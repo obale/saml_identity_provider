@@ -24,7 +24,6 @@ package to.networld.test.security.common.data;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.UUID;
 
 import org.dom4j.DocumentException;
 import org.junit.Assert;
@@ -43,7 +42,7 @@ public class TestAuthnRequest {
 	@Test
 	public void testToFromXML() {
 		try {
-			AuthnRequest orgAuthnRequest = new AuthnRequest("http://sp.networld.to/SAML2", UUID.randomUUID().toString());
+			AuthnRequest orgAuthnRequest = new AuthnRequest("http://sp.networld.to/SAML2");
 			ByteArrayOutputStream orgOut = new ByteArrayOutputStream();
 			orgAuthnRequest.toXML(orgOut);
 			

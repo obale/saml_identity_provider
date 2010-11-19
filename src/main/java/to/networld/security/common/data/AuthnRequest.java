@@ -21,84 +21,40 @@
 
 package to.networld.security.common.data;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
+import org.dom4j.Element;
+import org.dom4j.QName;
 
 import to.networld.security.common.DateHelper;
 
 /**
  * @author Alex Oberhauser
  */
-public class AuthnRequest {	
-	private String issuer = null;
-	private String requestID = null;
-	private String issueInstant = null;
+public class AuthnRequest extends MarshallingObject {	
 	
 	public AuthnRequest() {}
 	
 	public AuthnRequest(String _issuer) {
-		this.issuer = _issuer;
-		this.requestID = UUID.randomUUID().toString();
-		this.issueInstant = DateHelper.getCurrentDate();
-	}
-	
-	public AuthnRequest(String _issuer, String _requestID) {
-		this.issuer = _issuer;
-		this.requestID = _requestID;
-		this.issueInstant = DateHelper.getCurrentDate();
-	}
-	
-	public void load(InputStream _is) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document doc = reader.read(_is);
+		Element authnRequestNode = this.xmlDocument.addElement(new QName("AuthnRequest", SAMLP_NS));
+		authnRequestNode.add(SAML_NS);
 		
-		Node issuerNode = doc.selectSingleNode("/samlp:AuthnRequest/saml:Issuer");
-		if ( issuerNode != null )
-			this.issuer = issuerNode.getText().trim();
+		authnRequestNode.addAttribute("ID", UUID.randomUUID().toString());
+		authnRequestNode.addAttribute("Version", "2.0");
+		authnRequestNode.addAttribute("IssueInstant", DateHelper.getCurrentDate());
+		authnRequestNode.addAttribute("AssertionConsumerServiceIndex", "0");
+		authnRequestNode.addAttribute("AttributeConsumingServiceIndex", "0");
 		
-		Node requestNode = doc.selectSingleNode("/samlp:AuthnRequest");
-		if ( requestNode != null ) {
-			this.requestID = requestNode.valueOf("@ID");
-			this.issueInstant = requestNode.valueOf("@IssueInstant");
-		}
+		Element issuerNode = authnRequestNode.addElement(new QName("Issuer", SAML_NS));
+		issuerNode.setText(_issuer);
+		
+		Element namedIDPolicyNode = authnRequestNode.addElement(new QName("NameIDPolicy", SAMLP_NS));
+		namedIDPolicyNode.addAttribute("AllowCreate", "true");
+		namedIDPolicyNode.addAttribute("Format", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
 	}
 	
-	public String getIssuer() { return this.issuer; }
-	public String getIssuerInstant() { return this.issueInstant; }
-	public String getRequestID() { return this.requestID; }
+	public String getIssuer() { return this.getElementValue("/samlp:AuthnRequest/saml:Issuer"); }
+	public String getIssueInstant() { return this.getAttributeValue("/samlp:AuthnRequest", "IssueInstant"); }
+	public String getRequestID() { return this.getAttributeValue("/samlp:AuthnRequest", "ID"); }
 	
-	public void toXML(OutputStream _os) throws IOException {
-		_os.write("<samlp:AuthnRequest\n".getBytes());
-		_os.write("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n".getBytes());
-		_os.write("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
-		_os.write(("\tID=\"" + this.requestID + "\"\n").getBytes());
-		_os.write("\tVersion=\"2.0\"\n".getBytes());
-		_os.write(("\tIssueInstant=\"" + this.issueInstant + "\"\n").getBytes());
-		_os.write("\tAssertionConsumerServiceIndex=\"0\"\n".getBytes());
-		_os.write("\tAttributeConsumingServiceIndex=\"0\">\n".getBytes());
-		_os.write(("\t<saml:Issuer>" + this.issuer + "</saml:Issuer>\n").getBytes());
-		_os.write("\t<samlp:NameIDPolicy AllowCreate=\"true\" Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"/>\n".getBytes());
-		_os.write("</samlp:AuthnRequest>".getBytes());
-		_os.flush();
-		_os.close();
-	}
-	
-	@Override
-	public String toString() {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		try {
-			this.toXML(os);
-			return os.toString();
-		} catch (IOException e) {
-			return null;
-		}
-	}
 }

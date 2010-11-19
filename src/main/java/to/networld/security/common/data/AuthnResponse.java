@@ -21,27 +21,13 @@
 
 package to.networld.security.common.data;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.UUID;
 
-import javax.xml.crypto.MarshalException;
-import javax.xml.crypto.dsig.XMLSignatureException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Node;
+import org.dom4j.Element;
+import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
-import org.xml.sax.SAXException;
 
 import to.networld.security.common.DateHelper;
 import to.networld.security.common.Keytool;
@@ -50,129 +36,101 @@ import to.networld.security.common.XMLSecurity;
 /**
  * @author Alex Oberhauser
  */
-public class AuthnResponse {
-	private String issuer = null;
-	private String responseID = null;
-	private String assertionID = null;
-	private String username = null;
-	private String requestID = null;
-	private String destinationIRI = null;
-	private String audienceIRI = null;
-	private String currentDate = null;
-	private String futureDate = null;
+public class AuthnResponse extends MarshallingObject {
 	
 	public AuthnResponse() {}
 	
 	public AuthnResponse(String _username, String _issuer, String _requestID, String _destinationIRI, String _audienceIRI) {
-		this.issuer = _issuer;
-		this.requestID = _requestID;
-		this.destinationIRI = _destinationIRI;
-		this.audienceIRI = _audienceIRI;
-		this.responseID = UUID.randomUUID().toString();
-		this.assertionID = UUID.randomUUID().toString();
-		this.username = _username;
-		this.currentDate = DateHelper.getCurrentDate();
-		this.futureDate = DateHelper.getFutureDate(10);
-	}
-	
-	public void load(InputStream _is) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document doc = reader.read(_is);
+		String currentDate = DateHelper.getCurrentDate();
+		String futureDate = DateHelper.getFutureDate(10);
 		
-		Node issuerNode = doc.selectSingleNode("/samlp:Response/saml:Issuer");
-		if ( issuerNode != null )
-			this.issuer = issuerNode.getText();
+		Element authnResponse = this.xmlDocument.addElement(new QName("Response", SAMLP_NS));
+		authnResponse.add(SAML_NS);
 
-		Node responseNode = doc.selectSingleNode("/samlp:Response");
-		if ( responseNode != null ) {
-			this.responseID = responseNode.valueOf("@ID");
-			this.requestID = responseNode.valueOf("@InResponseTo");
-			this.currentDate = responseNode.valueOf("@IssueInstant");
-			this.destinationIRI = responseNode.valueOf("@Destination");
-		}
+		authnResponse.addAttribute("Destination", _destinationIRI);
+		String id = UUID.randomUUID().toString();
+		authnResponse.addAttribute("ID", id);
+		authnResponse.addAttribute("InResponseTo", _requestID);
+		authnResponse.addAttribute("IssueInstant", currentDate);
+		authnResponse.addAttribute("Version", "2.0");
 		
-		Node assertionNode = doc.selectSingleNode("/samlp:Response/saml:Assertion");
-		if ( assertionNode != null )
-			this.assertionID = assertionNode.valueOf("@ID");
+		Element issuer = authnResponse.addElement(new QName("Issuer", SAML_NS));
+		issuer.setText(_issuer);
 		
-		Node nameIDNode = doc.selectSingleNode("/samlp:Response/saml:Assertion/saml:Subject/saml:NameID");
-		if ( nameIDNode != null )
-			this.username = nameIDNode.getText().trim();
+		Element status = authnResponse.addElement(new QName("Status", SAMLP_NS));
+		Element statusCode = status.addElement(new QName("StatusCode", SAMLP_NS));
+		statusCode.addAttribute("Value", "urn:oasis:names:tc:SAML:2.0:status:Success");
 		
-		Node subjectConfirmationData = doc.selectSingleNode("/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData");
-		if ( subjectConfirmationData != null )
-			this.futureDate = subjectConfirmationData.valueOf("@NotOnOrAfter");
+		Element assertion = authnResponse.addElement(new QName("Assertion", SAML_NS));
+		String assertionID = UUID.randomUUID().toString();
+		assertion.addAttribute("ID", assertionID);
+		assertion.addAttribute("Version", "2.0");
+		assertion.addAttribute("IssueInstant", currentDate);
 		
-		Node audienceRestriction = doc.selectSingleNode("/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience");
-		if ( audienceRestriction != null )
-			this.audienceIRI = audienceRestriction.getText().trim();
+		Element assertionIssuer = assertion.addElement(new QName("Issuer", SAML_NS));
+		assertionIssuer.setText(_issuer);
+		
+		Element assertionSubject = assertion.addElement(new QName("Subject", SAML_NS));
+		
+		Element assertionNameID = assertionSubject.addElement(new QName("NameID", SAML_NS));
+		assertionNameID.addAttribute("Format", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
+		assertionNameID.setText(_username);
+		
+		Element assertionSubjectConfirmation = assertionSubject.addElement(new QName("SubjectConfirmation", SAML_NS));
+		assertionSubjectConfirmation.addAttribute("Method", "urn:oasis:names:tc:SAML:2.0:cm:bearer");
+		
+		Element assertionSubjectConfirmationData = assertionSubjectConfirmation.addElement(new QName("SubjectConfirmationData", SAML_NS));
+		assertionSubjectConfirmationData.addAttribute("InResponseTo", _requestID);
+		assertionSubjectConfirmationData.addAttribute("NotOnOrAfter", futureDate);
+		assertionSubjectConfirmationData.addAttribute("Recipient", _destinationIRI);
+		
+		Element assertionConditions = assertion.addElement(new QName("Conditions", SAML_NS));
+		assertionConditions.addAttribute("NotBefore", currentDate);
+		assertionConditions.addAttribute("NotOnOrAfter", futureDate);
+		
+		Element assertionAudienceRestriction = assertionConditions.addElement(new QName("AudienceRestriction", SAML_NS));
+		
+		Element assertionAudience = assertionAudienceRestriction.addElement(new QName("Audience", SAML_NS));
+		assertionAudience.setText(_audienceIRI);
+		
+		Element assertionAuthnStatement = assertion.addElement(new QName("AuthnStatement", SAML_NS));
+		assertionAuthnStatement.addAttribute("AuthnInstant", currentDate);
+		assertionAuthnStatement.addAttribute("SessionIndex", id);
+		
+		Element assertionAuthnContext = assertionAuthnStatement.addElement(new QName("AuthnContext", SAML_NS));
+		
+		Element assertionAuthnContextClassRef = assertionAuthnContext.addElement(new QName("AuthnContextClassRef", SAML_NS));
+		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
+		
+		this.signMessage(assertionID);
 	}
 	
-	public String getIssuer() { return this.issuer; }
-	public String getResponseID() { return this.responseID; }
-	public String getAssertionID() { return this.assertionID; }
-	
-	public void toXML(OutputStream _os) throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException, SAXException, ParserConfigurationException, MarshalException, XMLSignatureException, TransformerException {
-		ByteArrayOutputStream tmpOS = new ByteArrayOutputStream();
-		tmpOS.write("<samlp:Response\n".getBytes());
-		tmpOS.write("\txmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n".getBytes());
-		tmpOS.write("\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
-		tmpOS.write(("\tID=\"" + this.responseID + "\"\n").getBytes());
-		tmpOS.write(("\tInResponseTo=\"" + this.requestID + "\"\n").getBytes());
-		tmpOS.write("\tVersion=\"2.0\"\n".getBytes());
-		tmpOS.write(("\tIssueInstant=\"" + this.currentDate + "\"\n").getBytes());
-		tmpOS.write(("\tDestination=\"" + this.destinationIRI + "\">\n").getBytes());
-		tmpOS.write(("\t<saml:Issuer>" + this.issuer + "</saml:Issuer>\n").getBytes());
-		tmpOS.write("\t<samlp:Status>\n".getBytes());
-		tmpOS.write("\t\t<samlp:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\"/>\n".getBytes());
-		tmpOS.write("\t</samlp:Status>\n".getBytes());
-		tmpOS.write("\t<saml:Assertion\n".getBytes());
-		tmpOS.write("\t\txmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n".getBytes());
-		tmpOS.write(("\t\tID=\"" + this.assertionID  + "\"\n").getBytes());
-		tmpOS.write("\t\tVersion=\"2.0\"\n".getBytes());
-		tmpOS.write(("\t\tIssueInstant=\"" + currentDate + "\">\n").getBytes());
-		tmpOS.write(("\t\t<saml:Issuer>" + issuer + "</saml:Issuer>\n").getBytes());
-		tmpOS.write("\t\t<saml:Subject>\n".getBytes());
-		tmpOS.write("\t\t\t<saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\">\n".getBytes());
-		tmpOS.write(("\t\t\t\t" + this.username + "\n").getBytes());
-		tmpOS.write("\t\t\t</saml:NameID>\n".getBytes());
-		tmpOS.write("\t\t\t<saml:SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\n".getBytes());
-		tmpOS.write("\t\t\t\t<saml:SubjectConfirmationData\n".getBytes());
-		tmpOS.write(("\t\t\t\t\tInResponseTo=\"" + this.requestID + "\"\n").getBytes());
-		tmpOS.write(("\t\t\t\t\tRecipient=\"" + this.destinationIRI + "\"\n").getBytes());
-		tmpOS.write(("\t\t\t\t\tNotOnOrAfter=\"" + this.futureDate + "\"/>\n").getBytes());
-		tmpOS.write("\t\t\t\t</saml:SubjectConfirmation>\n".getBytes());
-		tmpOS.write("\t\t</saml:Subject>\n".getBytes());
-		tmpOS.write("\t\t<saml:Conditions\n".getBytes());
-		tmpOS.write(("\t\t\tNotBefore=\"" + this.currentDate + "\"\n").getBytes());
-		tmpOS.write(("\t\t\tNotOnOrAfter=\"" + this.futureDate + "\">\n").getBytes());
-		tmpOS.write("\t\t\t<saml:AudienceRestriction>\n".getBytes());
-		tmpOS.write(("\t\t\t\t<saml:Audience>" + this.audienceIRI + "</saml:Audience>\n").getBytes());
-		tmpOS.write("\t\t\t</saml:AudienceRestriction>\n".getBytes());
-		tmpOS.write("\t\t</saml:Conditions>\n".getBytes());
-		tmpOS.write("\t\t<saml:AuthnStatement\n".getBytes());
-		tmpOS.write(("\t\t\tAuthnInstant=\"" + this.currentDate + "\"\n").getBytes());
-		tmpOS.write(("\t\t\tSessionIndex=\"" + this.assertionID + "\">\n").getBytes());
-		tmpOS.write("\t\t\t<saml:AuthnContext>\n".getBytes());
-		tmpOS.write("\t\t\t\t<saml:AuthnContextClassRef>\n".getBytes());
-		tmpOS.write("\t\t\t\t\turn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport\n".getBytes());
-		tmpOS.write("\t\t\t\t</saml:AuthnContextClassRef>\n".getBytes());
-		tmpOS.write("\t\t\t</saml:AuthnContext>\n".getBytes());
-		tmpOS.write("\t\t</saml:AuthnStatement>\n".getBytes());
-		tmpOS.write("\t</saml:Assertion>\n".getBytes());
-		tmpOS.write("</samlp:Response>".getBytes());
-		XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
-		xmlSec.signDocument(_os, tmpOS.toString(), this.assertionID);
-	}
-	
-	@Override
-	public String toString() {
+	private void signMessage(String _nodeID) {
 		try {
+			XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			this.toXML(os);
-			return os.toString();
+			xmlSec.signDocument(os, this.xmlDocument.asXML(), _nodeID);
+			SAXReader reader = new SAXReader();
+			this.xmlDocument = reader.read(new ByteArrayInputStream(os.toString().getBytes()));
 		} catch (Exception e) {
-			return null;
+			e.printStackTrace();
 		}
 	}
+	
+
+	
+	public String getIssuer() { return this.getElementValue("/samlp:Response/saml:Issuer"); }
+	
+	public String getResponseID() { return this.getAttributeValue("/samlp:Response", "ID"); }
+	public String getRequestID() { return this.getAttributeValue("/samlp:Response", "InResponseTo"); }
+	public String getIssueInstant() { return this.getAttributeValue("/samlp:Response", "IssueInstant"); }
+	public String getDestination() { return this.getAttributeValue("/samlp:Response", "Destination"); }
+	
+	public String getAssertionID() { return this.getAttributeValue("/samlp:Response/saml:Assertion", "ID"); }
+	
+	public String getNameID() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:Subject/saml:NameID"); }
+	public String getAudience() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience"); }
+	
+	public String getNotOnOrAfter() { return this.getAttributeValue("/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData", "NotOnOrAfter"); }
+
 }

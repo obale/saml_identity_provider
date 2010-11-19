@@ -48,6 +48,11 @@ public class IdentityProvider  {
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
 		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI);
 		log.trace("\n--- BEGIN AuthnRequest ---\n" + auth + "\n--- END AuthnRequest ---\n");
+//		System.out.println("Issuer      : " + auth.getIssuer());
+//		System.out.println("Request ID  : " + auth.getRequestID());
+//		System.out.println("IssueInstant: " + auth.getIssueInstant());
+//		System.out.println();
+		
 		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI) + "\n--- END X-Form Part---\n");
 		
 		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
@@ -58,6 +63,16 @@ public class IdentityProvider  {
 				"https://idp.networld.to/SAML2");
 		
 		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
+//		System.out.println("Issuer       : " + response.getIssuer());
+//		System.out.println("Response ID  : " + response.getResponseID());
+//		System.out.println("Assertion ID : " + response.getAssertionID());
+//		System.out.println("Request ID   : " + response.getRequestID());
+//		System.out.println("Issue Instant: " + response.getIssueInstant());
+//		System.out.println("Destination  : " + response.getDestination());
+//		System.out.println("Name ID      : " + response.getNameID());
+//		System.out.println("Audience     : " + response.getAudience());
+//		System.out.println("NotOnOrAfter : " + response.getNotOnOrAfter());
+		
 		log.trace("\n--- BEGIN X-Form Part ---\n" + idpMsgFactory.createXFormSAMLPart(username,
 				auth.getRequestID(),
 				"http://sp.networld.to/SAML2/SSO/POST", 

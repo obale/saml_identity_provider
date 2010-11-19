@@ -122,9 +122,9 @@ public class XMLSecurity {
 	/**
 	 * Signs a subtree of the message with the X.509 certificate of this object.
 	 * 
-	 * @param _authMessage The XML message to sing.
+	 * @param _os The output stream that holds the signed message.
+	 * @param _authMessage The XML message to sign.
 	 * @param _nodeID The ID of the node that should be signed.
-	 * @return The signed message (Additional 'Signature' subnode) as OutputStream.
 	 * @throws SAXException
 	 * @throws IOException
 	 * @throws ParserConfigurationException

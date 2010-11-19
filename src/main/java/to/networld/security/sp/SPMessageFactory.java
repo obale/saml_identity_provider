@@ -53,7 +53,6 @@ public class SPMessageFactory {
 	 * Creates the SAML authentication message.
 	 * 
 	 * @param _issuerIRI
-	 * @param _id A unique identifier (e.g. UUID.randomUUID().toString())
 	 * @return The SAML authentication request message.
 	 * @throws IOException 
 	 */
