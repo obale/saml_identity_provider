@@ -31,7 +31,7 @@ import to.networld.security.common.DateHelper;
 /**
  * @author Alex Oberhauser
  */
-public class AuthnRequest extends MarshallingObject {	
+public class AuthnRequest extends GenericSAMLMessage {	
 	
 	public AuthnRequest() {}
 	

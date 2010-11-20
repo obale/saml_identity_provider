@@ -40,7 +40,7 @@ import org.dom4j.io.XMLWriter;
  * 
  * @author Alex Oberhauser
  */
-public abstract class MarshallingObject {
+public abstract class GenericSAMLMessage {
 	private DocumentFactory factory = DocumentFactory.getInstance();
 	
 	protected Document xmlDocument = this.factory.createDocument();

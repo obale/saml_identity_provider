@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
+import to.networld.security.common.data.AuthnResponseError;
+import to.networld.security.common.data.AuthnResponseError.CODE;
 import to.networld.security.idp.IdPMessageFactory;
 import to.networld.security.sp.SPMessageFactory;
 
@@ -48,10 +50,10 @@ public class IdentityProvider  {
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
 		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI);
 		log.trace("\n--- BEGIN AuthnRequest ---\n" + auth + "\n--- END AuthnRequest ---\n");
-//		System.out.println("Issuer      : " + auth.getIssuer());
-//		System.out.println("Request ID  : " + auth.getRequestID());
-//		System.out.println("IssueInstant: " + auth.getIssueInstant());
-//		System.out.println();
+		System.out.println("Issuer      : " + auth.getIssuer());
+		System.out.println("Request ID  : " + auth.getRequestID());
+		System.out.println("IssueInstant: " + auth.getIssueInstant());
+		System.out.println();
 		
 		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI) + "\n--- END X-Form Part---\n");
 		
@@ -63,21 +65,27 @@ public class IdentityProvider  {
 				"https://idp.networld.to/SAML2");
 		
 		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
-//		System.out.println("Issuer       : " + response.getIssuer());
-//		System.out.println("Response ID  : " + response.getResponseID());
-//		System.out.println("Assertion ID : " + response.getAssertionID());
-//		System.out.println("Request ID   : " + response.getRequestID());
-//		System.out.println("Issue Instant: " + response.getIssueInstant());
-//		System.out.println("Destination  : " + response.getDestination());
-//		System.out.println("Name ID      : " + response.getNameID());
-//		System.out.println("Audience     : " + response.getAudience());
-//		System.out.println("NotOnOrAfter : " + response.getNotOnOrAfter());
+		System.out.println("Issuer       : " + response.getIssuer());
+		System.out.println("Response ID  : " + response.getResponseID());
+		System.out.println("Assertion ID : " + response.getAssertionID());
+		System.out.println("Request ID   : " + response.getRequestID());
+		System.out.println("Issue Instant: " + response.getIssueInstant());
+		System.out.println("Destination  : " + response.getDestination());
+		System.out.println("Name ID      : " + response.getNameID());
+		System.out.println("Audience     : " + response.getAudience());
+		System.out.println("NotOnOrAfter : " + response.getNotOnOrAfter());
+		System.out.println();
 		
 		log.trace("\n--- BEGIN X-Form Part ---\n" + idpMsgFactory.createXFormSAMLPart(username,
 				auth.getRequestID(),
 				"http://sp.networld.to/SAML2/SSO/POST", 
 				"http://sp.networld.to/SAML2", "https://idp.networld.to/SAML2") 
 				+ "\n--- END X-Form Part---\n");
+		
+		AuthnResponseError errorMessage = new AuthnResponseError(CODE.AUTHN_FAILED, "https://idp.networld.to/SAML2", "http://sp.networld.to/SAML2/SSO/POST", auth.getRequestID());
+		log.trace("\n--- BEGIN AuthnResponseError ---\n" + errorMessage + "\n--- END AuthnResponseError---\n");
+		System.out.println("Error Status : " + errorMessage.getStatus());
+		System.out.println();
 	}
 
 }

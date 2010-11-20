@@ -34,7 +34,7 @@ public class DateHelper {
 	 * @return The date as string in the format: yyyy-MM-dd'T'HH:mm:ssZ
 	 */
 	public static String getCurrentDate() {
-		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		Date currentDate = new Date();
 		return dateFormatter.format(currentDate);
 	}
@@ -44,7 +44,7 @@ public class DateHelper {
 	 * @return currentDate + _minutes
 	 */
 	public static String getFutureDate(int _minutes) {
-		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.MINUTE, cal.get(Calendar.MINUTE) + _minutes);
 		return dateFormatter.format(cal.getTime());

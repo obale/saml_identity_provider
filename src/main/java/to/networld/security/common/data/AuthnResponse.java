@@ -36,7 +36,7 @@ import to.networld.security.common.XMLSecurity;
 /**
  * @author Alex Oberhauser
  */
-public class AuthnResponse extends MarshallingObject {
+public class AuthnResponse extends GenericSAMLMessage {
 	
 	public AuthnResponse() {}
 	
@@ -100,7 +100,11 @@ public class AuthnResponse extends MarshallingObject {
 		Element assertionAuthnContext = assertionAuthnStatement.addElement(new QName("AuthnContext", SAML_NS));
 		
 		Element assertionAuthnContextClassRef = assertionAuthnContext.addElement(new QName("AuthnContextClassRef", SAML_NS));
-		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
+		/*
+		 * Used for password authentication over secured connection.
+		 */
+//		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
+		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:Password");
 		
 		this.signMessage(assertionID);
 	}
@@ -117,7 +121,7 @@ public class AuthnResponse extends MarshallingObject {
 		}
 	}
 	
-
+	public String getStatus() { return this.getAttributeValue("/samlp:Response/samlp:Status/samlp:StatusCode", "Value"); }
 	
 	public String getIssuer() { return this.getElementValue("/samlp:Response/saml:Issuer"); }
 	
