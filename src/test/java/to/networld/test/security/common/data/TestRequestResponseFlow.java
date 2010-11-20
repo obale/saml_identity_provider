@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
+import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
+import to.networld.security.common.saml.NameIDFormat.FORMAT;
 import to.networld.security.idp.IdPMessageFactory;
 import to.networld.security.sp.SPMessageFactory;
 
@@ -68,7 +70,8 @@ public class TestRequestResponseFlow {
 				gainedRequestID, 
 				destinationIRI,
 				audienceIRI,
-				idpIssuerIRI);
+				idpIssuerIRI,
+				FORMAT.PERSISTENT, CLASSES.PASSWORD);
 		
 		Assert.assertEquals(response.getIssuer(), idpIssuerIRI);
 		Assert.assertEquals(response.getDestination(), destinationIRI);

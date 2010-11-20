@@ -32,6 +32,9 @@ import org.dom4j.io.SAXReader;
 import to.networld.security.common.DateHelper;
 import to.networld.security.common.Keytool;
 import to.networld.security.common.XMLSecurity;
+import to.networld.security.common.saml.ConstantHandler;
+import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
+import to.networld.security.common.saml.NameIDFormat.FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -40,7 +43,8 @@ public class AuthnResponse extends GenericSAMLMessage {
 	
 	public AuthnResponse() {}
 	
-	public AuthnResponse(String _username, String _issuer, String _requestID, String _destinationIRI, String _audienceIRI) {
+	public AuthnResponse(String _username, String _issuer, String _requestID, String _destinationIRI, String _audienceIRI, FORMAT _format, CLASSES _classes) {
+		ConstantHandler constHandler = ConstantHandler.getInstance();
 		String currentDate = DateHelper.getCurrentDate();
 		String futureDate = DateHelper.getFutureDate(10);
 		
@@ -73,7 +77,7 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionSubject = assertion.addElement(new QName("Subject", SAML_NS));
 		
 		Element assertionNameID = assertionSubject.addElement(new QName("NameID", SAML_NS));
-		assertionNameID.addAttribute("Format", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
+		assertionNameID.addAttribute("Format", constHandler.getNameIDFormat(FORMAT.PERSISTENT));
 		assertionNameID.setText(_username);
 		
 		Element assertionSubjectConfirmation = assertionSubject.addElement(new QName("SubjectConfirmation", SAML_NS));
@@ -100,15 +104,17 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionAuthnContext = assertionAuthnStatement.addElement(new QName("AuthnContext", SAML_NS));
 		
 		Element assertionAuthnContextClassRef = assertionAuthnContext.addElement(new QName("AuthnContextClassRef", SAML_NS));
-		/*
-		 * Used for password authentication over secured connection.
-		 */
-//		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
-		assertionAuthnContextClassRef.setText("urn:oasis:names:tc:SAML:2.0:ac:classes:Password");
+		assertionAuthnContextClassRef.setText(constHandler.getAuthnContextClasses(CLASSES.PASSWORD));
 		
 		this.signMessage(assertionID);
 	}
 	
+	/**
+	 * XXX: The keystore access information could not be included in a static form if the code
+	 *      is used as library. Additional that is a security leak.
+	 * 
+	 * @param _nodeID The identifier of the node that should be signed.
+	 */
 	private void signMessage(String _nodeID) {
 		try {
 			XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");

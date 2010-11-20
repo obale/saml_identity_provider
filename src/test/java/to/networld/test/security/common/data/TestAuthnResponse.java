@@ -42,6 +42,8 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import to.networld.security.common.data.AuthnResponse;
+import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
+import to.networld.security.common.saml.NameIDFormat.FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -64,11 +66,12 @@ public class TestAuthnResponse {
 	@Test
 	public void testToFromXML() throws NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException, SAXException, ParserConfigurationException, MarshalException, XMLSignatureException, TransformerException {
 		try {
-			AuthnResponse orgAuthnResponse = new AuthnResponse("John Doe",
+			AuthnResponse orgAuthnResponse = new AuthnResponse("john.doe@example.org",
 					"http://idp.networld.to/SAML2", 
 					UUID.randomUUID().toString(), 
 					"http://sp.networld.to/SAML2/SSO/POST", 
-					"http://sp.networld.to/SAML2");
+					"http://sp.networld.to/SAML2",
+					FORMAT.EMAIL, CLASSES.PASSWORD_PROTECTED_TRANSPORT);
 			ByteArrayOutputStream orgOut = new ByteArrayOutputStream();
 			orgAuthnResponse.toXML(orgOut);
 			

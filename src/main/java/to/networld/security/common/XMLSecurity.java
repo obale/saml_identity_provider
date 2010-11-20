@@ -110,11 +110,12 @@ public class XMLSecurity {
 		     Collections.singletonList(this.reference));
 	}
 	
-	private void initKeyInfo() {
+	private void initKeyInfo(boolean _addPubKey) {
 		KeyInfoFactory kif = this.xmlFactory.getKeyInfoFactory();
 		List<Object> x509Content = new ArrayList<Object>();
 		x509Content.add(this.pubCert.getSubjectX500Principal().getName());
-//		x509Content.add(this.pubCert);
+		if ( _addPubKey )
+			x509Content.add(this.pubCert);
 		X509Data xd = kif.newX509Data(x509Content);
 		this.keyInfo = kif.newKeyInfo(Collections.singletonList(xd));
 	}
@@ -141,7 +142,7 @@ public class XMLSecurity {
 		this.initCertificates();
 		this.initReference(_nodeID);
 		this.initSignInfo();
-		this.initKeyInfo();
+		this.initKeyInfo(false);
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		ByteArrayInputStream signMessageIS = new ByteArrayInputStream(_authMessage.getBytes());
