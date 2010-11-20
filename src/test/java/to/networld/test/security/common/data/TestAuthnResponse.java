@@ -42,8 +42,9 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import to.networld.security.common.data.AuthnResponse;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.ConstantHandler;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -71,7 +72,7 @@ public class TestAuthnResponse {
 					UUID.randomUUID().toString(), 
 					"http://sp.networld.to/SAML2/SSO/POST", 
 					"http://sp.networld.to/SAML2",
-					FORMAT.EMAIL, CLASSES.PASSWORD_PROTECTED_TRANSPORT);
+					ID_FORMAT.EMAIL, AUTH_METHOD.PASSWORD_PROTECTED_TRANSPORT);
 			ByteArrayOutputStream orgOut = new ByteArrayOutputStream();
 			orgAuthnResponse.toXML(orgOut);
 			
@@ -85,5 +86,33 @@ public class TestAuthnResponse {
 		} catch (DocumentException e) {
 			Assert.assertTrue(false);
 		}
+	}
+	
+	@Test
+	public void testValues() {
+		String nameID = "john.doe@example.org";
+		String issuer = "http://idp.networld.to/SAML2";
+		String requestID = UUID.randomUUID().toString();
+		String destinationIRI = "http://sp.networld.to/SAML2/SSO/POST";
+		String audienceIRI = "http://sp.networld.to/SAML2";
+		
+		ConstantHandler constHandler = ConstantHandler.getInstance();
+		String nameIDFormat = constHandler.getNameIDFormat(ID_FORMAT.EMAIL);
+		String classRef = constHandler.getAuthnContextClasses(AUTH_METHOD.PASSWORD_PROTECTED_TRANSPORT);
+		
+		AuthnResponse orgAuthnResponse = new AuthnResponse(nameID,
+				issuer, 
+				requestID, 
+				destinationIRI, 
+				audienceIRI,
+				ID_FORMAT.EMAIL, AUTH_METHOD.PASSWORD_PROTECTED_TRANSPORT);
+		
+		Assert.assertEquals(orgAuthnResponse.getNameID(), nameID);
+		Assert.assertEquals(orgAuthnResponse.getNameIDFormat(), nameIDFormat);
+		Assert.assertEquals(orgAuthnResponse.getIssuer(), issuer);
+		Assert.assertEquals(orgAuthnResponse.getAudience(), audienceIRI);
+		Assert.assertEquals(orgAuthnResponse.getRequestID(), requestID);
+		Assert.assertEquals(orgAuthnResponse.getDestination(), destinationIRI);
+		Assert.assertEquals(orgAuthnResponse.getAuthnContextClassRef(), classRef);
 	}
 }

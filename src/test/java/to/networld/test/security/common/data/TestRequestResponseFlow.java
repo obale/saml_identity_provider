@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 import to.networld.security.idp.IdPMessageFactory;
 import to.networld.security.sp.SPMessageFactory;
 
@@ -53,8 +53,6 @@ public class TestRequestResponseFlow {
 		/*
 		 * And now extract the needed information from the request message...
 		 */
-//		String gainedIssuer = auth.getIssuer();
-//		String gainedIssuerInstant = auth.getIssueInstant();
 		String gainedRequestID = auth.getRequestID();
 		
 		/*
@@ -71,7 +69,7 @@ public class TestRequestResponseFlow {
 				destinationIRI,
 				audienceIRI,
 				idpIssuerIRI,
-				FORMAT.PERSISTENT, CLASSES.PASSWORD);
+				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
 		
 		Assert.assertEquals(response.getIssuer(), idpIssuerIRI);
 		Assert.assertEquals(response.getDestination(), destinationIRI);

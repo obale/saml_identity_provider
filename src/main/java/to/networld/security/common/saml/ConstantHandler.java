@@ -21,8 +21,8 @@
 
 package to.networld.security.common.saml;
 
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -46,14 +46,20 @@ public class ConstantHandler {
 	/**
 	 * Expands the enumeration value (integer) to the corresponding String.
 	 * 
-	 * @param _format One of the entries in NameIDFormat.FORMAT
+	 * @param _format One of the entries in {@link ID_FORMAT}
 	 * @return The representation of the format in SAML2.0 string.
 	 */
-	public String getNameIDFormat(FORMAT _format) {
+	public String getNameIDFormat(ID_FORMAT _format) {
 		return this.nameIDformat.getNameIDFormat(_format);
 	}
 	
-	public String getAuthnContextClasses(CLASSES _classes) {
+	/**
+	 * Expands the enumeration value (integer) to the corresponding String.
+	 * 
+	 * @param _classes One of the entries in {@link AUTH_METHOD} 
+	 * @return The representation of the authentication method in SAML2.0 string.
+	 */
+	public String getAuthnContextClasses(AUTH_METHOD _classes) {
 		return this.authnContextClasses.getNameIDFormat(_classes);
 	}
 }

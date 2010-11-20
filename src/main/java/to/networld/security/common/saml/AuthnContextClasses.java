@@ -28,7 +28,7 @@ import java.util.Vector;
  */
 public class AuthnContextClasses {
 	
-	public enum CLASSES {
+	public enum AUTH_METHOD {
 		INTERNET_PROTOCOL,
 		INTERNET_PROTOCOL_PASSWORD,
 		KERBEROS,
@@ -87,7 +87,7 @@ public class AuthnContextClasses {
 		this.acClassesVector.add(prefix + "Unspecified");
 	}
 	
-	protected String getNameIDFormat(CLASSES _classes) {
+	protected String getNameIDFormat(AUTH_METHOD _classes) {
 		this.initAcClassesVector();
 		return this.acClassesVector.get(_classes.ordinal());
 	}

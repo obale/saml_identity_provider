@@ -25,8 +25,8 @@ import java.io.IOException;
 
 import to.networld.security.common.Base64Helper;
 import to.networld.security.common.data.AuthnResponse;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -43,7 +43,7 @@ public class IdPMessageFactory {
 		return instance;
 	}
 	
-	public String createXFormSAMLPart(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, FORMAT _format, CLASSES _classes) throws IOException {
+	public String createXFormSAMLPart(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		StringBuffer formPart = new StringBuffer();
 		formPart.append("<input type=\"hidden\" name=\"SAMLResponse\" value=\"");
 		formPart.append(Base64Helper.convertToBase64(this.createResponse(_username, _requestID, _destinationIRI, _audienceIRI, _issuerIRI, _format, _classes).toString().getBytes()));
@@ -58,12 +58,12 @@ public class IdPMessageFactory {
 	 * @param _requestID
 	 * @param _destinationIRI
 	 * @param _issuerIRI
-	 * @param _format The format of the _username (see {@link FORMAT})
-	 * @param _classes The authentication mechanism (see {@link CLASSES}) 
+	 * @param _format The format of the _username (see {@link ID_FORMAT})
+	 * @param _classes The authentication mechanism (see {@link AUTH_METHOD}) 
 	 * @return The SAML response message for the singel sign-on process.
 	 * @throws IOException 
 	 */
-	public AuthnResponse createResponse(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, FORMAT _format, CLASSES _classes) throws IOException {
+	public AuthnResponse createResponse(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		return new AuthnResponse(_username, _issuerIRI, _requestID, _destinationIRI, _audienceIRI, _format, _classes);
 		
 	}

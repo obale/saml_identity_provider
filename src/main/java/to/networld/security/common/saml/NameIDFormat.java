@@ -28,7 +28,7 @@ import java.util.Vector;
  */
 public class NameIDFormat {
 	
-	public enum FORMAT {
+	public enum ID_FORMAT {
 		UNSPECIFIED,
 		EMAIL,
 		X509_SUBJECT_NAME,
@@ -53,7 +53,7 @@ public class NameIDFormat {
 		this.nameIDFormatVector.add(prefix + "transient");
 	}
 	
-	protected String getNameIDFormat(FORMAT _format) {
+	protected String getNameIDFormat(ID_FORMAT _format) {
 		this.initNameIDFormatVector();
 		return this.nameIDFormatVector.get(_format.ordinal());
 	}

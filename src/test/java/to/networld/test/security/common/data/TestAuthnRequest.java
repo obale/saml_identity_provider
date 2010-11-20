@@ -36,9 +36,6 @@ import to.networld.security.common.data.AuthnRequest;
  */
 public class TestAuthnRequest {
 	
-	/**
-	 * Tests the serialization of the SAML AuthnRequest message.
-	 */
 	@Test
 	public void testToFromXML() {
 		try {
@@ -57,5 +54,13 @@ public class TestAuthnRequest {
 		} catch (DocumentException e) {
 			Assert.assertTrue(false);
 		}
+	}
+	
+	@Test
+	public void testValues() {
+		String issuer = "http://sp.networld.to/SAML2";
+		AuthnRequest orgAuthnRequest = new AuthnRequest(issuer);
+		
+		Assert.assertEquals(orgAuthnRequest.getIssuer(), issuer);
 	}
 }

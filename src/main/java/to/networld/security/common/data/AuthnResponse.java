@@ -33,8 +33,8 @@ import to.networld.security.common.DateHelper;
 import to.networld.security.common.Keytool;
 import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.saml.ConstantHandler;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -43,7 +43,7 @@ public class AuthnResponse extends GenericSAMLMessage {
 	
 	public AuthnResponse() {}
 	
-	public AuthnResponse(String _username, String _issuer, String _requestID, String _destinationIRI, String _audienceIRI, FORMAT _format, CLASSES _classes) {
+	public AuthnResponse(String _nameID, String _issuer, String _requestID, String _destinationIRI, String _audience, ID_FORMAT _format, AUTH_METHOD _classes) {
 		ConstantHandler constHandler = ConstantHandler.getInstance();
 		String currentDate = DateHelper.getCurrentDate();
 		String futureDate = DateHelper.getFutureDate(10);
@@ -77,8 +77,8 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionSubject = assertion.addElement(new QName("Subject", SAML_NS));
 		
 		Element assertionNameID = assertionSubject.addElement(new QName("NameID", SAML_NS));
-		assertionNameID.addAttribute("Format", constHandler.getNameIDFormat(FORMAT.PERSISTENT));
-		assertionNameID.setText(_username);
+		assertionNameID.addAttribute("Format", constHandler.getNameIDFormat(_format));
+		assertionNameID.setText(_nameID);
 		
 		Element assertionSubjectConfirmation = assertionSubject.addElement(new QName("SubjectConfirmation", SAML_NS));
 		assertionSubjectConfirmation.addAttribute("Method", "urn:oasis:names:tc:SAML:2.0:cm:bearer");
@@ -95,7 +95,7 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionAudienceRestriction = assertionConditions.addElement(new QName("AudienceRestriction", SAML_NS));
 		
 		Element assertionAudience = assertionAudienceRestriction.addElement(new QName("Audience", SAML_NS));
-		assertionAudience.setText(_audienceIRI);
+		assertionAudience.setText(_audience);
 		
 		Element assertionAuthnStatement = assertion.addElement(new QName("AuthnStatement", SAML_NS));
 		assertionAuthnStatement.addAttribute("AuthnInstant", currentDate);
@@ -104,13 +104,13 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionAuthnContext = assertionAuthnStatement.addElement(new QName("AuthnContext", SAML_NS));
 		
 		Element assertionAuthnContextClassRef = assertionAuthnContext.addElement(new QName("AuthnContextClassRef", SAML_NS));
-		assertionAuthnContextClassRef.setText(constHandler.getAuthnContextClasses(CLASSES.PASSWORD));
+		assertionAuthnContextClassRef.setText(constHandler.getAuthnContextClasses(_classes));
 		
 		this.signMessage(assertionID);
 	}
 	
 	/**
-	 * XXX: The keystore access information could not be included in a static form if the code
+	 * XXX: The keystore access information should not be included in a static form if the code
 	 *      is used as library. Additional that is a security leak.
 	 * 
 	 * @param _nodeID The identifier of the node that should be signed.
@@ -139,6 +139,10 @@ public class AuthnResponse extends GenericSAMLMessage {
 	public String getAssertionID() { return this.getAttributeValue("/samlp:Response/saml:Assertion", "ID"); }
 	
 	public String getNameID() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:Subject/saml:NameID"); }
+	public String getNameIDFormat() { return this.getAttributeValue("/samlp:Response/saml:Assertion/saml:Subject/saml:NameID", "Format"); }
+	
+	public String getAuthnContextClassRef() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef"); }
+	
 	public String getAudience() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience"); }
 	
 	public String getNotOnOrAfter() { return this.getAttributeValue("/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData", "NotOnOrAfter"); }

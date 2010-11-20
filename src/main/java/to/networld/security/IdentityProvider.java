@@ -29,8 +29,8 @@ import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.data.AuthnResponseError;
 import to.networld.security.common.data.AuthnResponseError.CODE;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 import to.networld.security.idp.IdPMessageFactory;
 import to.networld.security.sp.SPMessageFactory;
 
@@ -65,7 +65,7 @@ public class IdentityProvider  {
 				"http://sp.networld.to/SAML2/SSO/POST",
 				"http://sp.networld.to/SAML2",
 				"https://idp.networld.to/SAML2",
-				FORMAT.PERSISTENT, CLASSES.PASSWORD);
+				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
 		
 		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
 		System.out.println("Issuer       : " + response.getIssuer());
@@ -74,7 +74,7 @@ public class IdentityProvider  {
 		System.out.println("Request ID   : " + response.getRequestID());
 		System.out.println("Issue Instant: " + response.getIssueInstant());
 		System.out.println("Destination  : " + response.getDestination());
-		System.out.println("Name ID      : " + response.getNameID());
+		System.out.println("Name ID      :  '" + response.getNameID() + "' in format: " + response.getNameIDFormat());
 		System.out.println("Audience     : " + response.getAudience());
 		System.out.println("NotOnOrAfter : " + response.getNotOnOrAfter());
 		System.out.println();
@@ -83,7 +83,7 @@ public class IdentityProvider  {
 				auth.getRequestID(),
 				"http://sp.networld.to/SAML2/SSO/POST", 
 				"http://sp.networld.to/SAML2", "https://idp.networld.to/SAML2",
-				FORMAT.PERSISTENT, CLASSES.PASSWORD) 
+				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD) 
 				+ "\n--- END X-Form Part---\n");
 		
 		AuthnResponseError errorMessage = new AuthnResponseError(CODE.AUTHN_FAILED, "https://idp.networld.to/SAML2", "http://sp.networld.to/SAML2/SSO/POST", auth.getRequestID());

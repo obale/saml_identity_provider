@@ -27,8 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import to.networld.security.common.saml.ConstantHandler;
-import to.networld.security.common.saml.AuthnContextClasses.CLASSES;
-import to.networld.security.common.saml.NameIDFormat.FORMAT;
+import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -46,28 +46,28 @@ public class TestConstantHandler {
 		String nameIDprefix = "urn:oasis:names:tc:SAML:2.0:nameid-format:";
 		
 		String unspecified = nameIDprefix + "unspecified";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.UNSPECIFIED), unspecified);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.UNSPECIFIED), unspecified);
 		
 		String email = nameIDprefix + "emailAddress";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.EMAIL), email);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.EMAIL), email);
 		
 		String x509 = nameIDprefix + "X509SubjectName";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.X509_SUBJECT_NAME), x509);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.X509_SUBJECT_NAME), x509);
 		
 		String windows = nameIDprefix + "WindowsDomainQualifiedName";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.WINDOWS_DOMAIN_QUALIFIED_NAME), windows);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.WINDOWS_DOMAIN_QUALIFIED_NAME), windows);
 		
 		String kerberos = nameIDprefix + "kerberos";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.KERBEROS), kerberos);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.KERBEROS), kerberos);
 		
 		String entity = nameIDprefix + "entity";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.ENTITY), entity);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.ENTITY), entity);
 		
 		String persistent = nameIDprefix + "persistent";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.PERSISTENT), persistent);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.PERSISTENT), persistent);
 		
 		String trans = nameIDprefix + "transient";
-		Assert.assertEquals(constHandler.getNameIDFormat(FORMAT.TRANSIENT), trans);
+		Assert.assertEquals(constHandler.getNameIDFormat(ID_FORMAT.TRANSIENT), trans);
 	}
 	
 	@Test
@@ -75,75 +75,75 @@ public class TestConstantHandler {
 		String authnContextPrefix = "urn:oasis:names:tc:SAML:2.0:ac:classes:";
 		
 		String ip = authnContextPrefix + "InternetProtocol";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.INTERNET_PROTOCOL), ip);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.INTERNET_PROTOCOL), ip);
 		
 		String ipPassword = authnContextPrefix + "InternetProtocolPassword";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.INTERNET_PROTOCOL_PASSWORD), ipPassword);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.INTERNET_PROTOCOL_PASSWORD), ipPassword);
 		
 		String authnKerberos = authnContextPrefix + "Kerberos";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.KERBEROS), authnKerberos);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.KERBEROS), authnKerberos);
 		
 		String mobileOneUnre = authnContextPrefix + "MobileOneFactorUnregistered";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.MOBILE_ONE_FACTOR_UNREGISTERED), mobileOneUnre);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.MOBILE_ONE_FACTOR_UNREGISTERED), mobileOneUnre);
 		
 		String mobileTwoUnre = authnContextPrefix + "MobileTwoFactorUnregistered";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.MOBILE_TWO_FACTOR_UNREGISTERED), mobileTwoUnre);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.MOBILE_TWO_FACTOR_UNREGISTERED), mobileTwoUnre);
 		
 		String mobileOneCon = authnContextPrefix + "MobileOneFactorContract";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.MOBILE_ONE_FACTOR_CONTRACT), mobileOneCon);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.MOBILE_ONE_FACTOR_CONTRACT), mobileOneCon);
 		
 		String mobileTwoCon = authnContextPrefix + "MobileTwoFactorContract";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.MOBILE_TWO_FACTOR_CONTRACT), mobileTwoCon);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.MOBILE_TWO_FACTOR_CONTRACT), mobileTwoCon);
 		
 		String pwd = authnContextPrefix + "Password";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.PASSWORD), pwd);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.PASSWORD), pwd);
 		
 		String pwdProtected = authnContextPrefix + "PasswordProtectedTransport";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.PASSWORD_PROTECTED_TRANSPORT), pwdProtected);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.PASSWORD_PROTECTED_TRANSPORT), pwdProtected);
 		
 		String previous = authnContextPrefix + "PreviousSession";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.PREVIOUS_SESSION), previous);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.PREVIOUS_SESSION), previous);
 		
 		String ax509 = authnContextPrefix + "X509";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.X509), ax509);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.X509), ax509);
 		
 		String pgp = authnContextPrefix + "PGP";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.PGP), pgp);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.PGP), pgp);
 		
 		String spki = authnContextPrefix + "SPKI";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.SPKI), spki);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.SPKI), spki);
 		
 		String xmlDSig = authnContextPrefix + "XMLDSig";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.XML_DSIG), xmlDSig);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.XML_DSIG), xmlDSig);
 		
 		String smartcard = authnContextPrefix + "Smartcard";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.SMARTCARD), smartcard);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.SMARTCARD), smartcard);
 		
 		String smartcardPKI = authnContextPrefix + "SmartcardPKI";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.SMARTCARD_PKI), smartcardPKI);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.SMARTCARD_PKI), smartcardPKI);
 		
 		String softwarePKI = authnContextPrefix + "SoftwarePKI";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.SOFTWARE_PKI), softwarePKI);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.SOFTWARE_PKI), softwarePKI);
 		
 		String tele = authnContextPrefix + "Telephony";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.TELEPHONY), tele);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.TELEPHONY), tele);
 		
 		String nomTele = authnContextPrefix + "NomadTelephony";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.NOMADIC_TELEPHONY), nomTele);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.NOMADIC_TELEPHONY), nomTele);
 		
 		String persTele = authnContextPrefix + "PersonalTelephony";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.PERSONAL_TELEPHONY), persTele);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.PERSONAL_TELEPHONY), persTele);
 		
 		String authTele = authnContextPrefix + "AuthenticatedTelephony";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.AUTHENTICATED_TELEPHONY), authTele);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.AUTHENTICATED_TELEPHONY), authTele);
 		
 		String tls = authnContextPrefix + "TLSClient";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.TLS_CLIENT), tls);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.TLS_CLIENT), tls);
 		
 		String tst = authnContextPrefix + "TimeSyncToken";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.TIME_SYNC_TOKEN), tst);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.TIME_SYNC_TOKEN), tst);
 		
 		String unspecified = authnContextPrefix + "Unspecified";
-		Assert.assertEquals(constHandler.getAuthnContextClasses(CLASSES.UNSPECIFIED), unspecified);
+		Assert.assertEquals(constHandler.getAuthnContextClasses(AUTH_METHOD.UNSPECIFIED), unspecified);
 	}
 }
