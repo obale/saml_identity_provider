@@ -50,25 +50,31 @@ public class IdentityProvider  {
 		Logger log = Logger.getLogger(IdentityProvider.class);
 		
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
-		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI);
+		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI, ID_FORMAT.PERSISTENT);
 		log.trace("\n--- BEGIN AuthnRequest ---\n" + auth + "\n--- END AuthnRequest ---\n");
 		System.out.println("Issuer      : " + auth.getIssuer());
 		System.out.println("Request ID  : " + auth.getRequestID());
 		System.out.println("IssueInstant: " + auth.getIssueInstant());
+		System.out.println("NameIDFormat: " + auth.getNameIDFormat());
+		System.out.println("Allow Create: " + auth.getNameIDAllowCreate());
 		System.out.println();
 		
-		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI) + "\n--- END X-Form Part---\n");
+		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI, ID_FORMAT.PERSISTENT) + "\n--- END X-Form Part---\n");
 		
 		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
-		AuthnResponse response = idpMsgFactory.createResponse(username,
-				auth.getRequestID(), 
-				"http://sp.networld.to/SAML2/SSO/POST",
-				"http://sp.networld.to/SAML2",
+//		AuthnResponse response = idpMsgFactory.createResponse(username,
+//				auth.getRequestID(), 
+//				"http://sp.networld.to/SAML2/SSO/POST",
+//				"http://sp.networld.to/SAML2",
+//				"https://idp.networld.to/SAML2",
+//				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
+		AuthnResponse response = idpMsgFactory.createResponse(auth, username, 
 				"https://idp.networld.to/SAML2",
 				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
 		
 		log.trace("\n--- BEGIN Response ---\n" + response + "\n--- END Response ---\n");
 		System.out.println("Issuer       : " + response.getIssuer());
+		System.out.println("SessionID    : " + response.getSessionID());
 		System.out.println("Response ID  : " + response.getResponseID());
 		System.out.println("Assertion ID : " + response.getAssertionID());
 		System.out.println("Request ID   : " + response.getRequestID());

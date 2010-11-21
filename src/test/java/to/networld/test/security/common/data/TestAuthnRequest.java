@@ -30,6 +30,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import to.networld.security.common.data.AuthnRequest;
+import to.networld.security.common.saml.ConstantHandler;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -39,7 +41,7 @@ public class TestAuthnRequest {
 	@Test
 	public void testToFromXML() {
 		try {
-			AuthnRequest orgAuthnRequest = new AuthnRequest("http://sp.networld.to/SAML2");
+			AuthnRequest orgAuthnRequest = new AuthnRequest("http://sp.networld.to/SAML2", ID_FORMAT.PERSISTENT);
 			ByteArrayOutputStream orgOut = new ByteArrayOutputStream();
 			orgAuthnRequest.toXML(orgOut);
 			
@@ -59,8 +61,9 @@ public class TestAuthnRequest {
 	@Test
 	public void testValues() {
 		String issuer = "http://sp.networld.to/SAML2";
-		AuthnRequest orgAuthnRequest = new AuthnRequest(issuer);
+		AuthnRequest orgAuthnRequest = new AuthnRequest(issuer, ID_FORMAT.PERSISTENT);
 		
 		Assert.assertEquals(orgAuthnRequest.getIssuer(), issuer);
+		Assert.assertEquals(orgAuthnRequest.getNameIDFormat(), ConstantHandler.getInstance().getNameIDFormat(ID_FORMAT.PERSISTENT));
 	}
 }

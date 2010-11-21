@@ -25,6 +25,7 @@ import java.io.IOException;
 
 import to.networld.security.common.Base64Helper;
 import to.networld.security.common.data.AuthnRequest;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -41,10 +42,10 @@ public class SPMessageFactory {
 		return instance;
 	}
 	
-	public String createXFormSAMLPart(String _issuerIRI) throws IOException {
+	public String createXFormSAMLPart(String _issuerIRI, ID_FORMAT _nodeIDFormat) throws IOException {
 		StringBuffer formPart = new StringBuffer();
 		formPart.append("<input type=\"hidden\" name=\"SAMLRequest\" value=\"");
-		formPart.append(Base64Helper.convertToBase64(this.createAuthnRequest(_issuerIRI).toString().getBytes()));
+		formPart.append(Base64Helper.convertToBase64(this.createAuthnRequest(_issuerIRI, _nodeIDFormat).toString().getBytes()));
 		formPart.append("\" />\n");
 		return formPart.toString();
 	}
@@ -56,7 +57,7 @@ public class SPMessageFactory {
 	 * @return The SAML authentication request message.
 	 * @throws IOException 
 	 */
-	public AuthnRequest createAuthnRequest(String _issuerIRI) throws IOException {
-		return new AuthnRequest(_issuerIRI);
+	public AuthnRequest createAuthnRequest(String _issuerIRI, ID_FORMAT _nameIDFormat) throws IOException {
+		return new AuthnRequest(_issuerIRI, _nameIDFormat);
 	}
 }

@@ -99,7 +99,7 @@ public class AuthnResponse extends GenericSAMLMessage {
 		
 		Element assertionAuthnStatement = assertion.addElement(new QName("AuthnStatement", SAML_NS));
 		assertionAuthnStatement.addAttribute("AuthnInstant", currentDate);
-		assertionAuthnStatement.addAttribute("SessionIndex", id);
+		assertionAuthnStatement.addAttribute("SessionIndex", UUID.randomUUID().toString());
 		
 		Element assertionAuthnContext = assertionAuthnStatement.addElement(new QName("AuthnContext", SAML_NS));
 		
@@ -130,6 +130,8 @@ public class AuthnResponse extends GenericSAMLMessage {
 	public String getStatus() { return this.getAttributeValue("/samlp:Response/samlp:Status/samlp:StatusCode", "Value"); }
 	
 	public String getIssuer() { return this.getElementValue("/samlp:Response/saml:Issuer"); }
+	
+	public String getSessionID() { return this.getAttributeValue("/samlp:Response/saml:Assertion/saml:AuthnStatement", "SessionIndex"); }
 	
 	public String getResponseID() { return this.getAttributeValue("/samlp:Response", "ID"); }
 	public String getRequestID() { return this.getAttributeValue("/samlp:Response", "InResponseTo"); }

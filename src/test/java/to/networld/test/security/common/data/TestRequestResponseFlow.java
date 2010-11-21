@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
+import to.networld.security.common.saml.ConstantHandler;
 import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
 import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 import to.networld.security.idp.IdPMessageFactory;
@@ -44,9 +45,10 @@ public class TestRequestResponseFlow {
 		 * Create first a request message... 
 		 */
 		String spIssuerIRI = "http://sp.networld.to";
+		ID_FORMAT nameIDFormat = ID_FORMAT.TRANSIENT;
 		
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
-		AuthnRequest auth = spMsgFactory.createAuthnRequest(spIssuerIRI);
+		AuthnRequest auth = spMsgFactory.createAuthnRequest(spIssuerIRI, nameIDFormat);
 		
 		Assert.assertEquals(auth.getIssuer(), spIssuerIRI);
 		
@@ -69,12 +71,13 @@ public class TestRequestResponseFlow {
 				destinationIRI,
 				audienceIRI,
 				idpIssuerIRI,
-				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
+				nameIDFormat, AUTH_METHOD.PASSWORD);
 		
 		Assert.assertEquals(response.getIssuer(), idpIssuerIRI);
 		Assert.assertEquals(response.getDestination(), destinationIRI);
 		Assert.assertEquals(response.getAudience(), audienceIRI);
 		Assert.assertEquals(response.getNameID(), username);
+		Assert.assertEquals(response.getNameIDFormat(), ConstantHandler.getInstance().getNameIDFormat(nameIDFormat));
 		
 		/*
 		 * Check the cross references between the two messages...

@@ -24,6 +24,7 @@ package to.networld.security.idp;
 import java.io.IOException;
 
 import to.networld.security.common.Base64Helper;
+import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
 import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
@@ -51,6 +52,11 @@ public class IdPMessageFactory {
 		return formPart.toString();
 	}
 	
+	public String createXFormSAMLPart(AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+		String issuer = _request.getIssuer();
+		return this.createXFormSAMLPart(_username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
+	}
+	
 	/**
 	 * Create a response message if the authentication was a success.
 	 * 
@@ -65,6 +71,10 @@ public class IdPMessageFactory {
 	 */
 	public AuthnResponse createResponse(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		return new AuthnResponse(_username, _issuerIRI, _requestID, _destinationIRI, _audienceIRI, _format, _classes);
-		
+	}
+	
+	public AuthnResponse createResponse(AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+		String issuer = _request.getIssuer();
+		return this.createResponse(_username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
 	}
 }

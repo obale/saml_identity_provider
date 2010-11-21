@@ -27,6 +27,8 @@ import org.dom4j.Element;
 import org.dom4j.QName;
 
 import to.networld.security.common.DateHelper;
+import to.networld.security.common.saml.ConstantHandler;
+import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 
 /**
  * @author Alex Oberhauser
@@ -35,7 +37,7 @@ public class AuthnRequest extends GenericSAMLMessage {
 	
 	public AuthnRequest() {}
 	
-	public AuthnRequest(String _issuer) {
+	public AuthnRequest(String _issuer, ID_FORMAT _nameIDFormat) {
 		Element authnRequestNode = this.xmlDocument.addElement(new QName("AuthnRequest", SAMLP_NS));
 		authnRequestNode.add(SAML_NS);
 		
@@ -50,11 +52,14 @@ public class AuthnRequest extends GenericSAMLMessage {
 		
 		Element namedIDPolicyNode = authnRequestNode.addElement(new QName("NameIDPolicy", SAMLP_NS));
 		namedIDPolicyNode.addAttribute("AllowCreate", "true");
-		namedIDPolicyNode.addAttribute("Format", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
+		namedIDPolicyNode.addAttribute("Format",ConstantHandler.getInstance().getNameIDFormat( _nameIDFormat));
 	}
+	
+	public String getRequestID() { return this.getAttributeValue("/samlp:AuthnRequest", "ID"); }
 	
 	public String getIssuer() { return this.getElementValue("/samlp:AuthnRequest/saml:Issuer"); }
 	public String getIssueInstant() { return this.getAttributeValue("/samlp:AuthnRequest", "IssueInstant"); }
-	public String getRequestID() { return this.getAttributeValue("/samlp:AuthnRequest", "ID"); }
 	
+	public String getNameIDFormat() { return this.getAttributeValue("/samlp:AuthnRequest/samlp:NameIDPolicy", "Format"); }
+	public String getNameIDAllowCreate() { return this.getAttributeValue("/samlp:AuthnRequest/samlp:NameIDPolicy", "AllowCreate"); }
 }
