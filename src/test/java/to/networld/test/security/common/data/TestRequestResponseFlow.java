@@ -22,10 +22,17 @@
 package to.networld.test.security.common.data;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import to.networld.security.common.Keytool;
+import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.saml.ConstantHandler;
@@ -40,7 +47,9 @@ import to.networld.security.sp.SPMessageFactory;
 public class TestRequestResponseFlow {
 	
 	@Test
-	public void testRequestResponseReferences() throws IOException {
+	public void testRequestResponseReferences() throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException {
+		XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
+
 		/*
 		 * Create first a request message... 
 		 */
@@ -66,7 +75,7 @@ public class TestRequestResponseFlow {
 		String idpIssuerIRI ="https://idp.networld.to/SAML2"; 
 		
 		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
-		AuthnResponse response = idpMsgFactory.createResponse(username,
+		AuthnResponse response = idpMsgFactory.createResponse(xmlSec, username,
 				gainedRequestID, 
 				destinationIRI,
 				audienceIRI,

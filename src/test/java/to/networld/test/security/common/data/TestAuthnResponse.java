@@ -41,6 +41,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
+import to.networld.security.common.Keytool;
+import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.saml.ConstantHandler;
 import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
@@ -67,7 +69,9 @@ public class TestAuthnResponse {
 	@Test
 	public void testToFromXML() throws NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException, SAXException, ParserConfigurationException, MarshalException, XMLSignatureException, TransformerException {
 		try {
-			AuthnResponse orgAuthnResponse = new AuthnResponse("john.doe@example.org",
+			XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
+			
+			AuthnResponse orgAuthnResponse = new AuthnResponse(xmlSec, "john.doe@example.org",
 					"http://idp.networld.to/SAML2", 
 					UUID.randomUUID().toString(), 
 					"http://sp.networld.to/SAML2/SSO/POST", 
@@ -89,18 +93,20 @@ public class TestAuthnResponse {
 	}
 	
 	@Test
-	public void testValues() {
+	public void testValues() throws NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException, IOException {
 		String nameID = "john.doe@example.org";
 		String issuer = "http://idp.networld.to/SAML2";
 		String requestID = UUID.randomUUID().toString();
 		String destinationIRI = "http://sp.networld.to/SAML2/SSO/POST";
 		String audienceIRI = "http://sp.networld.to/SAML2";
 		
+		XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
+		
 		ConstantHandler constHandler = ConstantHandler.getInstance();
 		String nameIDFormat = constHandler.getNameIDFormat(ID_FORMAT.EMAIL);
 		String classRef = constHandler.getAuthnContextClasses(AUTH_METHOD.PASSWORD_PROTECTED_TRANSPORT);
 		
-		AuthnResponse orgAuthnResponse = new AuthnResponse(nameID,
+		AuthnResponse orgAuthnResponse = new AuthnResponse(xmlSec, nameID,
 				issuer, 
 				requestID, 
 				destinationIRI, 

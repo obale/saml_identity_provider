@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.crypto.KeySelector;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.crypto.dsig.DigestMethod;
@@ -46,7 +48,9 @@ import javax.xml.crypto.dsig.Transform;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.XMLValidateContext;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.dom.DOMValidateContext;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.X509Data;
@@ -61,6 +65,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -71,6 +76,8 @@ public class XMLSecurity {
 	private String keystorePassword = null;
 	private String certAlias = null;
 	private String certPassword = null;
+	
+	private Keytool keytool = null;
 	
 	private XMLSignatureFactory xmlFactory = null; 
 	private X509Certificate pubCert = null;
@@ -88,12 +95,13 @@ public class XMLSecurity {
 		this.certAlias = _certAlias;
 		this.certPassword = _certPassword;
 		this.xmlFactory = XMLSignatureFactory.getInstance("DOM");
+		this.keytool = new Keytool(this.keystore, this.keystorePassword);
 	}
 	
 	private void initCertificates() throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException, UnrecoverableEntryException {
-		Keytool keytool = new Keytool(this.keystore, this.keystorePassword);
-		this.signCert = keytool.getPrivateX509Certificate(this.certAlias, this.certPassword);
-		this.pubCert = keytool.getX509Certificate(this.certAlias);
+		this.signCert = this.keytool.getPrivateX509Certificate(this.certAlias, this.certPassword);
+		this.pubCert = this.keytool.getX509Certificate(this.certAlias);
+		this.keystore.close();
 	}
 	
 	private void initReference(String _nodeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
@@ -147,12 +155,41 @@ public class XMLSecurity {
 		dbf.setNamespaceAware(true);
 		ByteArrayInputStream signMessageIS = new ByteArrayInputStream(_authMessage.getBytes());
 		Document doc = dbf.newDocumentBuilder().parse(signMessageIS);
-		DOMSignContext dsc = new DOMSignContext(signCert, doc.getDocumentElement());
+		DOMSignContext dsc = new DOMSignContext(this.signCert, doc.getDocumentElement());
 		XMLSignature signature = this.xmlFactory.newXMLSignature(this.signedInfo, this.keyInfo);
 		signature.sign(dsc);
 		
 		TransformerFactory tf = TransformerFactory.newInstance();
 		Transformer trans = tf.newTransformer();
 		trans.transform(new DOMSource(doc), new StreamResult(_os));
+	}
+	
+	/**
+	 * Checks if the signature of the given message is valid. Every samlp:Request
+	 * message should be checked with this method.
+	 * 
+	 * @param _signedMessage The message with a &lt;Signature&gt; block.
+	 * @return True if signature is valid.
+	 * @throws SAXException
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 * @throws MarshalException
+	 * @throws XMLSignatureException
+	 */
+	public boolean validateSignature(String _signedMessage) throws SAXException, IOException, ParserConfigurationException, MarshalException, XMLSignatureException {
+		 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		 dbf.setNamespaceAware(true);
+		 Document doc = dbf.newDocumentBuilder().parse(new ByteArrayInputStream(_signedMessage.getBytes()));
+		 
+		 NodeList signatureNodeList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+		 if ( signatureNodeList.getLength() > 0) {
+			 if ( this.pubCert == null ) return false;
+			 KeySelector keySelector = KeySelector.singletonKeySelector((Key)this.pubCert.getPublicKey());
+			 XMLValidateContext validContext = new DOMValidateContext(keySelector, signatureNodeList.item(0));
+			 
+			 XMLSignature signature = this.xmlFactory.unmarshalXMLSignature(validContext);
+			 return signature.validate(validContext);
+		 }
+		 return false;
 	}
 }

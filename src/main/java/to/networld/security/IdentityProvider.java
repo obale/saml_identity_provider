@@ -22,9 +22,16 @@
 package to.networld.security;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 
 import org.apache.log4j.Logger;
 
+import to.networld.security.common.Keytool;
+import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.data.AuthnResponseError;
@@ -45,9 +52,16 @@ public class IdentityProvider  {
 	/**
 	 * @param args
 	 * @throws IOException 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws UnrecoverableEntryException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableEntryException, InvalidAlgorithmParameterException {
 		Logger log = Logger.getLogger(IdentityProvider.class);
+		
+		XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
 		
 		SPMessageFactory spMsgFactory = SPMessageFactory.getInstance();
 		AuthnRequest auth = spMsgFactory.createAuthnRequest(issuerIRI, ID_FORMAT.PERSISTENT);
@@ -62,13 +76,13 @@ public class IdentityProvider  {
 		log.trace("\n--- BEGIN X-Form Part ---\n" + spMsgFactory.createXFormSAMLPart(issuerIRI, ID_FORMAT.PERSISTENT) + "\n--- END X-Form Part---\n");
 		
 		IdPMessageFactory idpMsgFactory = IdPMessageFactory.getInstance();
-//		AuthnResponse response = idpMsgFactory.createResponse(username,
+//		AuthnResponse response = idpMsgFactory.createResponse(xmlSec, username,
 //				auth.getRequestID(), 
 //				"http://sp.networld.to/SAML2/SSO/POST",
 //				"http://sp.networld.to/SAML2",
 //				"https://idp.networld.to/SAML2",
 //				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
-		AuthnResponse response = idpMsgFactory.createResponse(auth, username, 
+		AuthnResponse response = idpMsgFactory.createResponse(xmlSec, auth, username, 
 				"https://idp.networld.to/SAML2",
 				ID_FORMAT.PERSISTENT, AUTH_METHOD.PASSWORD);
 		
@@ -85,7 +99,7 @@ public class IdentityProvider  {
 		System.out.println("NotOnOrAfter : " + response.getNotOnOrAfter());
 		System.out.println();
 		
-		log.trace("\n--- BEGIN X-Form Part ---\n" + idpMsgFactory.createXFormSAMLPart(username,
+		log.trace("\n--- BEGIN X-Form Part ---\n" + idpMsgFactory.createXFormSAMLPart(xmlSec, username,
 				auth.getRequestID(),
 				"http://sp.networld.to/SAML2/SSO/POST", 
 				"http://sp.networld.to/SAML2", "https://idp.networld.to/SAML2",

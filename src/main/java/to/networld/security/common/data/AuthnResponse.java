@@ -30,7 +30,6 @@ import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
 
 import to.networld.security.common.DateHelper;
-import to.networld.security.common.Keytool;
 import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.saml.ConstantHandler;
 import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
@@ -43,7 +42,7 @@ public class AuthnResponse extends GenericSAMLMessage {
 	
 	public AuthnResponse() {}
 	
-	public AuthnResponse(String _nameID, String _issuer, String _requestID, String _destinationIRI, String _audience, ID_FORMAT _format, AUTH_METHOD _classes) {
+	public AuthnResponse(XMLSecurity _xmlsec, String _nameID, String _issuer, String _requestID, String _destinationIRI, String _audience, ID_FORMAT _format, AUTH_METHOD _classes) {
 		ConstantHandler constHandler = ConstantHandler.getInstance();
 		String currentDate = DateHelper.getCurrentDate();
 		String futureDate = DateHelper.getFutureDate(10);
@@ -106,20 +105,16 @@ public class AuthnResponse extends GenericSAMLMessage {
 		Element assertionAuthnContextClassRef = assertionAuthnContext.addElement(new QName("AuthnContextClassRef", SAML_NS));
 		assertionAuthnContextClassRef.setText(constHandler.getAuthnContextClasses(_classes));
 		
-		this.signMessage(assertionID);
+		this.signMessage(assertionID, _xmlsec);
 	}
 	
 	/**
-	 * XXX: The keystore access information should not be included in a static form if the code
-	 *      is used as library. Additional that is a security leak.
-	 * 
 	 * @param _nodeID The identifier of the node that should be signed.
 	 */
-	private void signMessage(String _nodeID) {
+	private void signMessage(String _nodeID, XMLSecurity _xmlSec) {
 		try {
-			XMLSecurity xmlSec = new XMLSecurity(Keytool.class.getResourceAsStream("/keystore.jks"), "v3ryS3cr3t", "idproot", "v3ryS3cr3t");
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			xmlSec.signDocument(os, this.xmlDocument.asXML(), _nodeID);
+			_xmlSec.signDocument(os, this.xmlDocument.asXML(), _nodeID);
 			SAXReader reader = new SAXReader();
 			this.xmlDocument = reader.read(new ByteArrayInputStream(os.toString().getBytes()));
 		} catch (Exception e) {

@@ -24,6 +24,7 @@ package to.networld.security.idp;
 import java.io.IOException;
 
 import to.networld.security.common.Base64Helper;
+import to.networld.security.common.XMLSecurity;
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.saml.AuthnContextClasses.AUTH_METHOD;
@@ -44,17 +45,17 @@ public class IdPMessageFactory {
 		return instance;
 	}
 	
-	public String createXFormSAMLPart(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+	public String createXFormSAMLPart(XMLSecurity _xmlsec, String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		StringBuffer formPart = new StringBuffer();
 		formPart.append("<input type=\"hidden\" name=\"SAMLResponse\" value=\"");
-		formPart.append(Base64Helper.convertToBase64(this.createResponse(_username, _requestID, _destinationIRI, _audienceIRI, _issuerIRI, _format, _classes).toString().getBytes()));
+		formPart.append(Base64Helper.convertToBase64(this.createResponse(_xmlsec, _username, _requestID, _destinationIRI, _audienceIRI, _issuerIRI, _format, _classes).toString().getBytes()));
 		formPart.append("\" />\n");
 		return formPart.toString();
 	}
 	
-	public String createXFormSAMLPart(AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+	public String createXFormSAMLPart(XMLSecurity _xmlsec, AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		String issuer = _request.getIssuer();
-		return this.createXFormSAMLPart(_username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
+		return this.createXFormSAMLPart(_xmlsec, _username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
 	}
 	
 	/**
@@ -69,12 +70,12 @@ public class IdPMessageFactory {
 	 * @return The SAML response message for the singel sign-on process.
 	 * @throws IOException 
 	 */
-	public AuthnResponse createResponse(String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
-		return new AuthnResponse(_username, _issuerIRI, _requestID, _destinationIRI, _audienceIRI, _format, _classes);
+	public AuthnResponse createResponse(XMLSecurity _xmlsec, String _username, String _requestID, String _destinationIRI, String _audienceIRI, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+		return new AuthnResponse(_xmlsec, _username, _issuerIRI, _requestID, _destinationIRI, _audienceIRI, _format, _classes);
 	}
 	
-	public AuthnResponse createResponse(AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
+	public AuthnResponse createResponse(XMLSecurity _xmlsec, AuthnRequest _request, String _username, String _issuerIRI, ID_FORMAT _format, AUTH_METHOD _classes) throws IOException {
 		String issuer = _request.getIssuer();
-		return this.createResponse(_username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
+		return this.createResponse(_xmlsec, _username, _request.getRequestID(), issuer, issuer, _issuerIRI, _format, _classes);
 	}
 }
