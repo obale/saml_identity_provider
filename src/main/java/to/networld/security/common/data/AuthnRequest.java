@@ -21,7 +21,14 @@
 
 package to.networld.security.common.data;
 
+import java.util.Iterator;
 import java.util.UUID;
+
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPBodyElement;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
 import org.dom4j.Element;
 import org.dom4j.QName;
@@ -38,21 +45,36 @@ public class AuthnRequest extends GenericSAMLMessage {
 	public AuthnRequest() {}
 	
 	public AuthnRequest(String _issuer, ID_FORMAT _nameIDFormat) {
+		this.writeAuthnRequest(UUID.randomUUID().toString(),
+				DateHelper.getCurrentDate(), 
+				_issuer,
+				ConstantHandler.getInstance().getNameIDFormat(_nameIDFormat),
+				"2.0", "true", "0", "0");
+	}
+
+	private void writeAuthnRequest(String _id,
+			String _issueInstant,
+			String _issuer,
+			String _nameIDFormat,
+			String _version,
+			String _allowCreate,
+			String _assertionConsumerServiceIndex,
+			String _attributeConsumingServiceIndex) {
 		Element authnRequestNode = this.xmlDocument.addElement(new QName("AuthnRequest", SAMLP_NS));
 		authnRequestNode.add(SAML_NS);
 		
-		authnRequestNode.addAttribute("ID", UUID.randomUUID().toString());
-		authnRequestNode.addAttribute("Version", "2.0");
-		authnRequestNode.addAttribute("IssueInstant", DateHelper.getCurrentDate());
-		authnRequestNode.addAttribute("AssertionConsumerServiceIndex", "0");
-		authnRequestNode.addAttribute("AttributeConsumingServiceIndex", "0");
+		authnRequestNode.addAttribute("ID", _id);
+		authnRequestNode.addAttribute("Version", _version);
+		authnRequestNode.addAttribute("IssueInstant", _issueInstant);
+		authnRequestNode.addAttribute("AssertionConsumerServiceIndex", _assertionConsumerServiceIndex);
+		authnRequestNode.addAttribute("AttributeConsumingServiceIndex", _attributeConsumingServiceIndex);
 		
 		Element issuerNode = authnRequestNode.addElement(new QName("Issuer", SAML_NS));
 		issuerNode.setText(_issuer);
 		
 		Element namedIDPolicyNode = authnRequestNode.addElement(new QName("NameIDPolicy", SAMLP_NS));
-		namedIDPolicyNode.addAttribute("AllowCreate", "true");
-		namedIDPolicyNode.addAttribute("Format",ConstantHandler.getInstance().getNameIDFormat( _nameIDFormat));
+		namedIDPolicyNode.addAttribute("AllowCreate", _allowCreate);
+		namedIDPolicyNode.addAttribute("Format", _nameIDFormat);
 	}
 	
 	public String getRequestID() { return this.getAttributeValue("/samlp:AuthnRequest", "ID"); }
@@ -62,4 +84,46 @@ public class AuthnRequest extends GenericSAMLMessage {
 	
 	public String getNameIDFormat() { return this.getAttributeValue("/samlp:AuthnRequest/samlp:NameIDPolicy", "Format"); }
 	public String getNameIDAllowCreate() { return this.getAttributeValue("/samlp:AuthnRequest/samlp:NameIDPolicy", "AllowCreate"); }
+
+	/**
+	 * @see to.networld.security.common.data.GenericSAMLMessage#load(javax.xml.soap.SOAPMessage)
+	 */
+	@Override
+	public void load(SOAPMessage _soapMessage) throws SOAPException {
+		SOAPBody body = _soapMessage.getSOAPBody();
+		
+		String requestID = "";
+		String version = "2.0";
+		String issueInstant = "";
+		String issuerName = "";
+		String allowCreate = "true";
+		String format = "";
+		String assertionConsumerServiceIndex = "0";
+		String attributeConsumingServiceIndex = "0";
+		
+		Iterator<?> iter = body.getChildElements(new javax.xml.namespace.QName("urn:oasis:names:tc:SAML:2.0:protocol", "AuthnRequest"));
+		if ( iter.hasNext() ) {
+			SOAPBodyElement authnRequest = (SOAPBodyElement) iter.next();
+
+			requestID = authnRequest.getAttribute("ID");
+			version = authnRequest.getAttribute("Version");
+			issueInstant = authnRequest.getAttribute("IssueInstant");
+			assertionConsumerServiceIndex = authnRequest.getAttribute("AssertionConsumerServiceIndex");
+			attributeConsumingServiceIndex = authnRequest.getAttribute("AttributeConsumingServiceIndex");
+
+			Iterator<?> iterIssuer = authnRequest.getChildElements(new javax.xml.namespace.QName("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer"));
+			if ( iterIssuer.hasNext() ) {
+				SOAPElement issuer = (SOAPElement) iterIssuer.next();
+				issuerName = issuer.getTextContent();
+			}
+
+			Iterator<?> iterNameIDPolicy = authnRequest.getChildElements(new javax.xml.namespace.QName("urn:oasis:names:tc:SAML:2.0:protocol", "NameIDPolicy"));
+			if ( iterNameIDPolicy.hasNext() ) {
+				SOAPElement nameIDPolicy = (SOAPElement) iterNameIDPolicy.next();
+				allowCreate = nameIDPolicy.getAttribute("AllowCreate");
+				format = nameIDPolicy.getAttribute("Format");
+			}	
+		}
+		this.writeAuthnRequest(requestID, issueInstant, issuerName, format, version, allowCreate, assertionConsumerServiceIndex, attributeConsumingServiceIndex);
+	}
 }

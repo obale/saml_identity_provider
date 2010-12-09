@@ -24,6 +24,9 @@ package to.networld.security.common.data;
 import java.util.UUID;
 import java.util.Vector;
 
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+
 import org.dom4j.Element;
 import org.dom4j.QName;
 
@@ -113,5 +116,13 @@ public class AuthnResponseError extends GenericSAMLMessage {
 	}
 	
 	public String getStatus() { return this.getAttributeValue("/samlp:Response/samlp:Status/samlp:StatusCode", "Value"); }
+
+	/**
+	 * @see to.networld.security.common.data.GenericSAMLMessage#load(javax.xml.soap.SOAPMessage)
+	 */
+	@Override
+	public void load(SOAPMessage soapMessage) throws SOAPException {
+		// TODO Auto-generated method stub
+	}
 
 }

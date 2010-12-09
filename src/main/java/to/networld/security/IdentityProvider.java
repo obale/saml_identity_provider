@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 
 import to.networld.security.common.Keytool;
 import to.networld.security.common.XMLSecurity;
+import to.networld.security.common.data.ArtifactResolve;
 import to.networld.security.common.data.AuthnRequest;
 import to.networld.security.common.data.AuthnResponse;
 import to.networld.security.common.data.AuthnResponseError;
@@ -110,6 +111,9 @@ public class IdentityProvider  {
 		log.trace("\n--- BEGIN AuthnResponseError ---\n" + errorMessage + "\n--- END AuthnResponseError---\n");
 		System.out.println("Error Status : " + errorMessage.getStatus());
 		System.out.println();
+		
+		ArtifactResolve artResolve = new ArtifactResolve(xmlSec, "http://sp.networld.to", "http://example.org/ArtifactResolve", "some_artifact_test");
+		System.out.println(artResolve);
 	}
 
 }

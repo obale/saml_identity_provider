@@ -25,6 +25,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+
 import org.dom4j.Element;
 import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
@@ -41,12 +44,12 @@ import to.networld.security.common.saml.NameIDFormat.ID_FORMAT;
 public class AuthnResponse extends GenericSAMLMessage {
 	
 	public AuthnResponse() {}
-	
+
 	public AuthnResponse(XMLSecurity _xmlsec, String _nameID, String _issuer, String _requestID, String _destinationIRI, String _audience, ID_FORMAT _format, AUTH_METHOD _classes) {
 		ConstantHandler constHandler = ConstantHandler.getInstance();
 		String currentDate = DateHelper.getCurrentDate();
 		String futureDate = DateHelper.getFutureDate(10);
-		
+
 		Element authnResponse = this.xmlDocument.addElement(new QName("Response", SAMLP_NS));
 		authnResponse.add(SAML_NS);
 
@@ -143,5 +146,13 @@ public class AuthnResponse extends GenericSAMLMessage {
 	public String getAudience() { return this.getElementValue("/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience"); }
 	
 	public String getNotOnOrAfter() { return this.getAttributeValue("/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData", "NotOnOrAfter"); }
+
+	/**
+	 * @see to.networld.security.common.data.GenericSAMLMessage#load(javax.xml.soap.SOAPMessage)
+	 */
+	@Override
+	public void load(SOAPMessage _soapMessage) throws SOAPException {
+		// TODO Auto-generated method stub
+	}
 
 }

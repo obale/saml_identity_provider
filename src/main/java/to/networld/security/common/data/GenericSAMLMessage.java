@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
@@ -62,6 +65,13 @@ public abstract class GenericSAMLMessage {
 		SAXReader reader = new SAXReader();
 		this.xmlDocument = reader.read(_is);
 	}
+	
+	/**
+	 * Extracts a SAML2.0 message from a SOAP message.
+	 * 
+	 * @param _soapMessage The SOAP message that includes the SAML2.0 message in the body.
+	 */
+	public abstract void load(SOAPMessage _soapMessage) throws SOAPException;
 	
 	protected String getAttributeValue(String _xpath, String _attribute) {
 		Element element = (Element)this.xmlDocument.selectSingleNode(_xpath);
